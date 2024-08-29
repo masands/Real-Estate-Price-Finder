@@ -10,7 +10,22 @@ window.addEventListener('load', () => {
       const match = content.match(/"marketing_price_range":"(.*?)"/);
       
       if (match) {
-        return match[1].replace(/_/g, ' to ');
+
+        // Get FirstPrice and LastPrice
+        const priceRange = match[1].split('_');
+        const firstPrice = priceRange[0]
+        const lastPrice = priceRange[1]
+
+        // If price contains 'm', then multiply by 1000000, else if price contains 'k', then multiply by 1000
+        const firstPriceValue = firstPrice.includes('m') ? parseFloat(firstPrice.replace('m', '')) * 1000000 : parseFloat(firstPrice.replace('k', '')) * 1000;
+        const lastPriceValue = lastPrice.includes('m') ? parseFloat(lastPrice.replace('m', '')) * 1000000 : parseFloat(lastPrice.replace('k', '')) * 1000;
+
+        // Add thousand separator to the price
+        const firstPriceFormatted = firstPriceValue.toLocaleString();
+        const lastPriceFormatted = lastPriceValue.toLocaleString();
+
+        // Add $ sign to the price and return the price range
+        return `$${firstPriceFormatted} - $${lastPriceFormatted}`;
       }
     }
     return null;
