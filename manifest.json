@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Real Estate Price Finder",
+  "version": "0.1",
+  "permissions": ["activeTab", "scripting"],
+  "content_scripts": [
+    {
+      "matches": ["https://www.realestate.com.au/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "19": "images/icon19.png",
+    "32": "images/icon32.png",
+    "38": "images/icon38.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["images/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
