@@ -85,7 +85,7 @@ window.addEventListener('load', () => {
       firstPriceFormatted = firstPriceValue.toLocaleString();
       lastPriceFormatted = lastPriceValue.toLocaleString();
 
-      return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}\nMedian Price: $${medianPriceFormatted}`;
+      return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}<hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">Median Price: $${medianPriceFormatted}`;
     }
   }
 
