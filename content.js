@@ -129,32 +129,81 @@ window.addEventListener('load', () => {
       firstPriceFormatted = firstPriceValue.toLocaleString();
       lastPriceFormatted = lastPriceValue.toLocaleString();
 
-      return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}\nMedian Price: $${medianPriceFormatted}`;
+      return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}<hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">Median Price: $${medianPriceFormatted}`;
     }
   }
 
   async function getHistoricalPrice() {
-    try {
-      const response = await new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({
-          action: "extractData",
-          url: "https://www.realestate.com.au/property/unit-20-34-marri-rd-duncraig-wa-6023/"
-        }, (response) => {
-          if (chrome.runtime.lastError) {
-            reject(chrome.runtime.lastError);
-          } else {
-            resolve(response);
-          }
+
+    // Get all the script tags
+    const scripts = document.getElementsByTagName('script');
+
+    // Initialize variables
+    let streetAddress = null;
+    let addressLocality = null;
+    let addressRegion = null;
+    let postalCode = null;
+    let propertyUrl = null;
+
+    for (let script of scripts) {
+      let content = script.innerHTML;
+      // Remove all instances of '\'
+      content = content.replace(/\\/g, '');
+      const buyOrRentMatch = content.match(/"@type":"ListItem","position":1,"name":"(.*?)"/);
+      const streetAddress_match = content.match(/"streetAddress":"(.*?)"/);
+      const addressLocality_match = content.match(/"addressLocality":"(.*?)"/);
+      const addressRegion_match = content.match(/"addressRegion":"(.*?)"/);
+      const postalCode_match = content.match(/"postalCode":"(.*?)"/);
+
+      // Assign the matches to the variables
+      if (buyOrRentMatch) {buyOrRent = buyOrRentMatch;}
+      if (streetAddress_match) {streetAddress = streetAddress_match;}
+      if (addressLocality_match) {addressLocality = addressLocality_match;}
+      if (addressRegion_match) {addressRegion = addressRegion_match;}
+      if (postalCode_match) {postalCode = postalCode_match;}
+    }
+
+    // If for Rent, return null
+    if (buyOrRent && buyOrRent[1] === 'Rent') {
+      return null;
+    }
+
+    if (addressLocality && addressRegion && postalCode && streetAddress) {
+
+      // Search for the property using the street address, suburb, postcode and state
+      const search = `${streetAddress[1]} ${addressLocality[1]} ${addressRegion[1]} ${postalCode[1]}`;
+      const searchUrl = `https://suggest.realestate.com.au/consumer-suggest/suggestions?max=1&type=address&src=property-value-page&query=${search}`;  
+      try {
+        const response = await fetch(searchUrl);
+        const data = await response.json();
+        propertyUrl = data._embedded.suggestions[0].source.url;
+      } catch (error) {
+        console.error('Error:', error);
+      }
+
+      // Get the historical prices data
+      try {
+        const response = await new Promise((resolve, reject) => {
+          chrome.runtime.sendMessage({
+            action: "extractData",
+            url: propertyUrl
+          }, (response) => {
+            if (chrome.runtime.lastError) {
+              reject(chrome.runtime.lastError);
+            } else {
+              resolve(response);
+            }
+          });
         });
-      });
-      return response;
-    } catch (error) {
-      console.error('Error:', error);
+        return response;
+      } catch (error) {
+        console.error('Error:', error);
+      }
     }
   }
 
   // Function to update the price range in the specified span
-  function updatePriceRange(priceRange, historicalPrice) {
+  async function updatePriceRange(priceRange) {
     const priceSpan = document.querySelector('.property-price.property-info__price');
     
     if (priceSpan) {
@@ -164,6 +213,9 @@ window.addEventListener('load', () => {
       }
       const originalPrice = priceSpan.textContent;
       priceSpan.textContent = originalPrice + '**';
+
+      // Get historical prices data
+      const historicalPrices = await getHistoricalPrice();
       
       // Get the image URL using chrome.runtime.getURL
       const imageUrl = chrome.runtime.getURL('images/icon48.png');
@@ -172,19 +224,41 @@ window.addEventListener('load', () => {
       const card = document.createElement('div');
       card.className = 'price-guide-card';
       card.innerHTML = `
-          <div class="card-content" style="display: flex; align-items: center;">
-              <img src="${imageUrl}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+      <div class="card-content" style="text-align: center;">
+          <img src="${imageUrl}" alt="Logo" style="width: 50px; height: 50px; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; justify-content: center;">
               <div style="flex-grow: 1; text-align: center;">
                   <h3 style="margin: 0 0 10px;">Price Guide</h3>
                   <p style="margin: 0;">${priceRange}</p>
               </div>
           </div>
-          <hr style="margin: 10px 0;">
-          <div style="margin-top: 5px; font-size: 10px; color: #666;">
-              <p><b>Agent Price:</b> this is the price that the agent has listed this property for.</p>
-              <p><b>Median Price:</b> this is the middle of the total number of similar properties sold within this suburb over the past 12 months.</p>
-          </div>
-      `;
+      </div>
+      <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
+      <div style="margin-top: 5px; font-size: 10px; color: #666;">
+          <p><b>Agent Price:</b> this is the price that the agent has listed this property for.</p>
+          <p><b>Median Price:</b> this is the middle of the total number of similar properties sold within this suburb over the past 12 months.</p>
+      </div>
+      <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
+      <div style="margin-top: 10px; text-align: center;">
+          <h4>Property history</h4>
+          <table style="margin: 0 auto; width: 80%; border-collapse: collapse; font-size: 12px;">
+              <thead>
+                  <tr>
+                      <th style="border: 1px solid #ddd; padding: 8px;">Date</th>
+                      <th style="border: 1px solid #ddd; padding: 8px;">Price</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  ${historicalPrices.map(price => `
+                      <tr>
+                          <td style="border: 1px solid #ddd; padding: 8px;">${price.date}</td>
+                          <td style="border: 1px solid #ddd; padding: 8px;">${price.price}</td>
+                      </tr>
+                  `).join('')}
+              </tbody>
+          </table>
+      </div>
+  `;
       card.style.border = '1px solid #ccc';
       card.style.padding = '16px';
       card.style.marginTop = '10px';
@@ -199,8 +273,7 @@ window.addEventListener('load', () => {
   // Function to run the script
   async function runScript() {
     const priceRange = await extractPriceRange();
-    const historicalPrice = await getHistoricalPrice();
-    if (priceRange && historicalPrice) {
+    if (priceRange) {
       updatePriceRange(priceRange);
     }
   }
