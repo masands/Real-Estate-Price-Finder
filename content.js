@@ -1,34 +1,84 @@
 window.addEventListener('load', () => {
 
   // Function to extract the price range from the script tags
-  function extractPriceRange() {
+  async function extractPriceRange() {
+    
+    // Get all the script tags
     const scripts = document.getElementsByTagName('script');
+    
+    // Initialize variables
+    let marketingPriceRange = null;
+    let addressLocality = null;
+    let addressRegion = null;
+    let postalCode = null;
+    let propertyType = null;
+    let bedrooms = null;
+    let priceRange = null;
+    let firstPrice = null;
+    let lastPrice = null;
+    let firstPriceValue = null;
+    let lastPriceValue = null;
+    let firstPriceFormatted = null;
+    let lastPriceFormatted = null;
+    let medianPrice = null;
+    let medianPriceFormatted = null;
+
     for (let script of scripts) {
       let content = script.innerHTML;
       // Remove all instances of '\'
       content = content.replace(/\\/g, '');
-      const match = content.match(/"marketing_price_range":"(.*?)"/);
-      
-      if (match) {
+      const marketingPriceRangeMatch = content.match(/"marketing_price_range":"(.*?)"/);
+      const addressLocality_match = content.match(/"addressLocality":"(.*?)"/);
+      const addressRegion_match = content.match(/"addressRegion":"(.*?)"/);
+      const postalCode_match = content.match(/"postalCode":"(.*?)"/);
+      const propertyType_match = content.match(/"@type":"ListItem","position":4,"name":"(.*?)"/);
+      const bedrooms_match = content.match(/"bedrooms":{"value":(\d+)/);
 
-        // Get FirstPrice and LastPrice
-        const priceRange = match[1].split('_');
-        const firstPrice = priceRange[0]
-        const lastPrice = priceRange[1]
+      // Assign the matches to the variables
+      if (marketingPriceRangeMatch) {marketingPriceRange = marketingPriceRangeMatch;}
+      if (addressLocality_match) {addressLocality = addressLocality_match;}
+      if (addressRegion_match) {addressRegion = addressRegion_match;}
+      if (postalCode_match) {postalCode = postalCode_match;}
+      if (propertyType_match) {propertyType = propertyType_match;}
+      if (bedrooms_match) {bedrooms = bedrooms_match;}
+    }
 
-        // If price contains 'm', then multiply by 1000000, else if price contains 'k', then multiply by 1000
-        const firstPriceValue = firstPrice.includes('m') ? parseFloat(firstPrice.replace('m', '')) * 1000000 : parseFloat(firstPrice.replace('k', '')) * 1000;
-        const lastPriceValue = lastPrice.includes('m') ? parseFloat(lastPrice.replace('m', '')) * 1000000 : parseFloat(lastPrice.replace('k', '')) * 1000;
+    if (addressLocality && addressRegion && postalCode && propertyType && bedrooms) {
+      // Make GET request to the following URL and get the suburbMedianPrice value
+      const state = addressRegion[1];
+      const suburb = addressLocality[1];
+      const postcode = postalCode[1];
+      const property = propertyType[1].toLowerCase();
+      const bed = bedrooms[1];
+      const url = `https://homeloans.realestate.com.au/api/median-price?state=${state}&suburb=${suburb}&postcode=${postcode}&bedrooms=${bed}&propertyType=${property}`;
 
-        // Add thousand separator to the price
-        const firstPriceFormatted = firstPriceValue.toLocaleString();
-        const lastPriceFormatted = lastPriceValue.toLocaleString();
-
-        // Add $ sign to the price and return the price range
-        return `$${firstPriceFormatted} - $${lastPriceFormatted}`;
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        medianPrice = data.suburbMedianPrice;
+        medianPriceFormatted = medianPrice.toLocaleString();
+        console.log(medianPriceFormatted);
+      } catch (error) {
+        console.error('Error:', error);
       }
     }
-    return null;
+
+    if (marketingPriceRange && medianPrice) {
+      // Get FirstPrice and LastPrice
+      priceRange = marketingPriceRange[1].split('_');
+      firstPrice = priceRange[0];
+      lastPrice = priceRange[1];
+
+      // If price contains 'm', then multiply by 1000000, else if price contains 'k', then multiply by 1000
+      firstPriceValue = firstPrice.includes('m') ? parseFloat(firstPrice.replace('m', '')) * 1000000 : parseFloat(firstPrice.replace('k', '')) * 1000;
+      lastPriceValue = lastPrice.includes('m') ? parseFloat(lastPrice.replace('m', '')) * 1000000 : parseFloat(lastPrice.replace('k', '')) * 1000;
+
+      // Add thousand separator to the price
+      firstPriceFormatted = firstPriceValue.toLocaleString();
+      lastPriceFormatted = lastPriceValue.toLocaleString();
+
+      return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}\nMedian Price: $${medianPriceFormatted}`;
+    }
   }
 
   // Function to update the price range in the specified span
@@ -66,13 +116,12 @@ window.addEventListener('load', () => {
 
       // Insert the card after the price element
       priceSpan.insertAdjacentElement('afterend', card);
-
     }
   }
 
   // Function to run the script
-  function runScript() {
-    const priceRange = extractPriceRange();
+  async function runScript() {
+    const priceRange = await extractPriceRange();
     if (priceRange) {
       updatePriceRange(priceRange);
     }
@@ -80,31 +129,4 @@ window.addEventListener('load', () => {
 
   // Execute the functions initially
   runScript();
-
-
-  // // Function to add a location observer
-  // function addLocationObserver(callback) {
-  //   // Options for the observer (which mutations to observe)
-  //   const config = { attributes: false, childList: true, subtree: false };
-
-  //   // Create an observer instance linked to the callback function
-  //   const observer = new MutationObserver(callback);
-
-  //   // Start observing the target node for configured mutations
-  //   const targetNode = document.getElementById('AdForm_Site_Tracking_Pixel');
-
-  //   // Start observing the target node for configured mutations
-  //   observer.observe(targetNode, config);
-  // }
-
-  // function observerCallback() {
-
-  //   if (window.location.href.startsWith('https://www.realestate.com.au/')) {
-  //     runScript();
-  //   }
-  // }
-
-  // addLocationObserver(observerCallback)
-  // observerCallback()
-
 });
