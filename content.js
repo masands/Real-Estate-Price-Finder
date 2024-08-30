@@ -107,6 +107,11 @@ window.addEventListener('load', () => {
                   <p style="margin: 0;">${priceRange}</p>
               </div>
           </div>
+          <hr style="margin: 10px 0;">
+          <div style="margin-top: 5px; font-size: 10px; color: #666;">
+              <p><b>Agent Price:</b> this is the price that the agent has listed this property for.</p>
+              <p><b>Median Price:</b> this is the middle of the total number of similar properties sold within this suburb over the past 12 months.</p>
+          </div>
       `;
       card.style.border = '1px solid #ccc';
       card.style.padding = '16px';
