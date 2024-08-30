@@ -131,7 +131,7 @@ window.addEventListener('load', () => {
       }
     }
 
-    if (marketingPriceRange && medianPrice) {
+    if (marketingPriceRange) {
       // Get FirstPrice and LastPrice
       priceRange = marketingPriceRange[1].split('_');
       firstPrice = priceRange[0];
@@ -144,8 +144,12 @@ window.addEventListener('load', () => {
       // Add thousand separator to the price
       firstPriceFormatted = firstPriceValue.toLocaleString();
       lastPriceFormatted = lastPriceValue.toLocaleString();
-
-      return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}<hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">Median Price: $${medianPriceFormatted}`;
+      
+      if (medianPrice) {
+        return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}<hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">Median Price: $${medianPriceFormatted}`;
+      } else {
+        return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}`;
+      }
     }
   }
 
