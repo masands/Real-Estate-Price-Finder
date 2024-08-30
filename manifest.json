@@ -2,7 +2,14 @@
   "manifest_version": 3,
   "name": "Real Estate Price Finder",
   "version": "0.1",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["https://www.realestate.com.au/*"],

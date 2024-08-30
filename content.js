@@ -1,5 +1,46 @@
 window.addEventListener('load', () => {
 
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "extractPriceAndDate") {
+      const data = [];
+      const timeLineWrappers = document.querySelectorAll("[class*='TimeLineWrapper']");
+      const extractedData = extractPriceAndDate(timeLineWrappers[0], data);
+      sendResponse(extractedData);
+    }
+  });
+
+  function extractPriceAndDate(timeLineWrapper, data) {
+    // Get all year wrappers, which contain the events
+    const yearWrappers = timeLineWrapper.querySelectorAll("[class*='TimeLineYearlyWrapper']");
+  
+    // Loop through each year wrapper
+    yearWrappers.forEach((yearWrapper) => {
+      // Extract the year from the figcaption element
+      const yearElement = yearWrapper.querySelector("figcaption");
+      const year = yearElement ? yearElement.textContent.trim() : "";
+  
+      // Get all event wrappers inside each year
+      const events = yearWrapper.querySelectorAll("[class*='TimeLineEventWrapper']");
+  
+      // Loop through each event to extract price and date
+      events.forEach((event) => {
+        const priceElement = event.querySelector("h4, [class*='Price']");
+        const dateElement = event.querySelector("small");
+  
+        const priceMatch = priceElement ? priceElement.textContent.trim().match(/Sold\s*(\$\d[\d,]*)/) : null;
+        const price = priceMatch ? priceMatch[1] : "";
+        const date = dateElement ? (dateElement.textContent.match(/Sold (\w+ \d{1,2}, \d{4})/) || [null, null])[1] : null;
+  
+        if (price && date) {
+          data.push({ year, price, date });
+        }
+      });
+    });
+  
+    return data;
+  }
+
+
   // Function to extract the price range from the script tags
   async function extractPriceRange() {
     
@@ -9,6 +50,7 @@ window.addEventListener('load', () => {
     // Initialize variables
     let buyOrRent = null;
     let marketingPriceRange = null;
+    let streetAddress = null;
     let addressLocality = null;
     let addressRegion = null;
     let postalCode = null;
@@ -30,6 +72,7 @@ window.addEventListener('load', () => {
       content = content.replace(/\\/g, '');
       const buyOrRentMatch = content.match(/"@type":"ListItem","position":1,"name":"(.*?)"/);
       const marketingPriceRangeMatch = content.match(/"marketing_price_range":"(.*?)"/);
+      const streetAddress_match = content.match(/"streetAddress":"(.*?)"/);
       const addressLocality_match = content.match(/"addressLocality":"(.*?)"/);
       const addressRegion_match = content.match(/"addressRegion":"(.*?)"/);
       const postalCode_match = content.match(/"postalCode":"(.*?)"/);
@@ -39,6 +82,7 @@ window.addEventListener('load', () => {
       // Assign the matches to the variables
       if (buyOrRentMatch) {buyOrRent = buyOrRentMatch;}
       if (marketingPriceRangeMatch) {marketingPriceRange = marketingPriceRangeMatch;}
+      if (streetAddress_match) {streetAddress = streetAddress_match;}
       if (addressLocality_match) {addressLocality = addressLocality_match;}
       if (addressRegion_match) {addressRegion = addressRegion_match;}
       if (postalCode_match) {postalCode = postalCode_match;}
@@ -89,8 +133,28 @@ window.addEventListener('load', () => {
     }
   }
 
+  async function getHistoricalPrice() {
+    try {
+      const response = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({
+          action: "extractData",
+          url: "https://www.realestate.com.au/property/unit-20-34-marri-rd-duncraig-wa-6023/"
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve(response);
+          }
+        });
+      });
+      return response;
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
   // Function to update the price range in the specified span
-  function updatePriceRange(priceRange) {
+  function updatePriceRange(priceRange, historicalPrice) {
     const priceSpan = document.querySelector('.property-price.property-info__price');
     
     if (priceSpan) {
@@ -135,7 +199,8 @@ window.addEventListener('load', () => {
   // Function to run the script
   async function runScript() {
     const priceRange = await extractPriceRange();
-    if (priceRange) {
+    const historicalPrice = await getHistoricalPrice();
+    if (priceRange && historicalPrice) {
       updatePriceRange(priceRange);
     }
   }
