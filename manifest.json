@@ -7,6 +7,9 @@
     "scripting",
     "tabs"
   ],
+  "host_permissions": [
+    "https://www.realestate.com.au/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
