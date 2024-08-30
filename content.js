@@ -53,7 +53,6 @@ window.addEventListener('load', () => {
     return data;
   }
 
-
   /**
    * Extracts the price range and median price from the script tags.
    * @returns {String} The price range and median price.

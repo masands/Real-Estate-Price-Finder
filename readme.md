@@ -13,7 +13,7 @@ The extension requires the following permissions to function:
 - **Access Content of the Active Tab**: To read the content of the active tab on realestate.com.au and find the price range information.
 - **Modify the DOM**: To update the page by replacing the default "Offers" text with the actual price range.
 - **Inject and Execute Scripts**: To dynamically analyze and process the page content for price information.
-- **Access Specific URLs**: To run only on pages under `https://www.realestate.com.au/buy/*`.
+- **Access Specific URLs**: To run only on pages under `https://www.realestate.com.au/*`.
 
 ## How It Works
 1. When you navigate to a property listing page on realestate.com.au, the extension automatically injects a content script.

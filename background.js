@@ -1,3 +1,10 @@
+/**
+ * Listens for messages from other parts of the extension.
+ * @param {Object} request - The request object containing the action and other data.
+ * @param {Object} sender - The sender object containing information about the script context that sent the message.
+ * @param {Function} sendResponse - The function to call when you have a response.
+ * @returns {boolean} - Returns true to indicate that the response will be sent asynchronously.
+ */
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "extractData") {
       chrome.tabs.create({ url: request.url, active: false }, (tab) => {

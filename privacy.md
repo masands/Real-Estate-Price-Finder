@@ -19,7 +19,7 @@ The extension modifies the content of the page by replacing the default "Offers"
 The extension injects and executes scripts on realestate.com.au pages to find and extract the price range information dynamically. This allows the extension to access and process the page content effectively.
 
 ### Access Specific URLs
-The extension only accesses pages on `https://www.realestate.com.au/buy/*` to perform its core functionality. This restriction ensures that the extension operates only on relevant pages.
+The extension only accesses pages on `https://www.realestate.com.au/*` to perform its core functionality. This restriction ensures that the extension operates only on relevant pages.
 
 ## Ensuring User Privacy
 
