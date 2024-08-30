@@ -1,5 +1,12 @@
 window.addEventListener('load', () => {
 
+    /**
+   * Listener for Chrome runtime messages.
+   * Extracts price and date information from the timeline when the action is "extractPriceAndDate".
+   * @param {Object} request - The request object containing the action.
+   * @param {Object} sender - The sender of the message.
+   * @param {Function} sendResponse - The function to send the response back.
+   */
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "extractPriceAndDate") {
       const data = [];
@@ -9,6 +16,12 @@ window.addEventListener('load', () => {
     }
   });
 
+  /**
+   * Extracts price and date information from the timeline wrapper.
+   * @param {Element} timeLineWrapper - The timeline wrapper element containing yearly and event wrappers.
+   * @param {Array} data - The array to store the extracted data.
+   * @returns {Array} The array containing extracted price and date information.
+   */
   function extractPriceAndDate(timeLineWrapper, data) {
     // Get all year wrappers, which contain the events
     const yearWrappers = timeLineWrapper.querySelectorAll("[class*='TimeLineYearlyWrapper']");
@@ -41,7 +54,11 @@ window.addEventListener('load', () => {
   }
 
 
-  // Function to extract the price range from the script tags
+  /**
+   * Extracts the price range and median price from the script tags.
+   * @returns {String} The price range and median price.
+   * @returns {null} If the property is for rent, or if any of the required data is missing.
+   */
   async function extractPriceRange() {
     
     // Get all the script tags
@@ -133,6 +150,11 @@ window.addEventListener('load', () => {
     }
   }
 
+  /**
+   * Gets the historical prices data from the property URL.
+   * @returns {Array} The array containing the historical prices data.
+   * @returns {null} If the property is for rent, or if any of the required data is missing.
+   */
   async function getHistoricalPrice() {
 
     // Get all the script tags
@@ -202,7 +224,10 @@ window.addEventListener('load', () => {
     }
   }
 
-  // Function to update the price range in the specified span
+  /**
+   * Updates the price range and median price on the property page.
+   * @param {*} priceRange - The price range and median price.
+   */
   async function updatePriceRange(priceRange) {
     const priceSpan = document.querySelector('.property-price.property-info__price');
     
@@ -270,7 +295,10 @@ window.addEventListener('load', () => {
     }
   }
 
-  // Function to run the script
+  /**
+   * Runs the script to extract the price range and median price
+   * and updates the property page.
+   */
   async function runScript() {
     const priceRange = await extractPriceRange();
     if (priceRange) {
@@ -278,6 +306,6 @@ window.addEventListener('load', () => {
     }
   }
 
-  // Execute the functions initially
+  // Run the script
   runScript();
 });
