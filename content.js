@@ -7,6 +7,7 @@ window.addEventListener('load', () => {
     const scripts = document.getElementsByTagName('script');
     
     // Initialize variables
+    let buyOrRent = null;
     let marketingPriceRange = null;
     let addressLocality = null;
     let addressRegion = null;
@@ -27,6 +28,7 @@ window.addEventListener('load', () => {
       let content = script.innerHTML;
       // Remove all instances of '\'
       content = content.replace(/\\/g, '');
+      const buyOrRentMatch = content.match(/"@type":"ListItem","position":1,"name":"(.*?)"/);
       const marketingPriceRangeMatch = content.match(/"marketing_price_range":"(.*?)"/);
       const addressLocality_match = content.match(/"addressLocality":"(.*?)"/);
       const addressRegion_match = content.match(/"addressRegion":"(.*?)"/);
@@ -35,12 +37,18 @@ window.addEventListener('load', () => {
       const bedrooms_match = content.match(/"bedrooms":{"value":(\d+)/);
 
       // Assign the matches to the variables
+      if (buyOrRentMatch) {buyOrRent = buyOrRentMatch;}
       if (marketingPriceRangeMatch) {marketingPriceRange = marketingPriceRangeMatch;}
       if (addressLocality_match) {addressLocality = addressLocality_match;}
       if (addressRegion_match) {addressRegion = addressRegion_match;}
       if (postalCode_match) {postalCode = postalCode_match;}
       if (propertyType_match) {propertyType = propertyType_match;}
       if (bedrooms_match) {bedrooms = bedrooms_match;}
+    }
+
+    // If for Rent, return null
+    if (buyOrRent && buyOrRent[1] === 'Rent') {
+      return null;
     }
 
     if (addressLocality && addressRegion && postalCode && propertyType && bedrooms) {
