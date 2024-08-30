@@ -1,7 +1,7 @@
-# RealEstate Price Range Finder Chrome Extension
+# Real Estate Price Range Finder Chrome Extension
 
 ## Overview
-The RealEstate Price Range Finder is a Chrome extension that automatically finds and displays the price range for properties listed on realestate.com.au. It scans the page for the relevant data and replaces the default "Offers" text with the actual price range, enhancing the user's browsing experience by providing immediate access to essential information.
+The Real Estate Price Range Finder is a Chrome extension that automatically finds and displays the price range for properties listed on realestate.com.au. It scans the page for the relevant data and replaces the default "Offers" text with the actual price range, enhancing the user's browsing experience by providing immediate access to essential information.
 
 ## Features
 - **Automatic Price Detection**: Finds and extracts the price range information from the `<script>` tags on property pages.
