@@ -40,89 +40,113 @@ window.addEventListener('load', () => {
    * @returns Nothing.
    */
   async function extractPricesList() {
-    // Check if URL is https://www.realestate.com.au/buy/*
     const currentUrl = window.location.href;
     const regex = /^https:\/\/www\.realestate\.com\.au\/buy\/.*$/;
-  
+
     if (regex.test(currentUrl)) {
-      // Loop through each item in <ul class="tiered-results tiered-results--exact"> and get link in details-link residential-card__details-link
-      const tieredResults = document.querySelector('.tiered-results.tiered-results--exact');
-      const prices = [];
-      if (tieredResults) {
-        const items = tieredResults.querySelectorAll('.residential-card__content');
-        for (const item of items) {
+        const tieredResults = document.querySelector('.tiered-results.tiered-results--exact');
+        const prices = [];
 
-          let price = null;
-          let url = item.querySelector('.details-link.residential-card__details-link');
+        if (tieredResults) {
+            const items = tieredResults.querySelectorAll('.residential-card__content');
+            const queue = [];
+            let activeRequests = 0;
+            const maxConcurrentRequests = 2;
 
-          // Create and insert the loading card element
-          const loadingCard = document.createElement('div');
-          loadingCard.className = 'loading-card';
-          loadingCard.innerHTML = `
-          <br>
-          <div class="card-content" style="display: flex; align-items: center;">
-              <img src="${chrome.runtime.getURL('images/icon48.png')}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
-              <div style="flex-grow: 1; text-align: center;">
-                  <h3 style="margin: 0 0 10px;">Loading Prices ...</h3>
-              </div>
-          </div>
-          `;
-          item.insertAdjacentElement('afterend', loadingCard);
-
-          // Get the historical prices data
-          try {
-            const response = await new Promise((resolve, reject) => {
-              chrome.runtime.sendMessage({
-                action: "pricesList",
-                url: url.href
-              }, (response) => {
-                if (chrome.runtime.lastError) {
-                  reject(chrome.runtime.lastError);
-                } else {
-                  resolve(response);
+            const observer = new IntersectionObserver(async (entries, observer) => {
+                for (const entry of entries) {
+                    if (entry.isIntersecting) {
+                        const item = entry.target;
+                        queue.push(item);
+                        processQueue();
+                        observer.unobserve(item);
+                    }
                 }
-              });
-            });
-            prices.push(response);
-            price = response;
-          } catch (error) {
-            console.error('Error:', error);
-          }
+            }, { threshold: 0.1 });
 
-          // Remove the spinner
-          loadingCard.remove();
+            items.forEach(item => observer.observe(item));
 
-          // Replace the div <div class="residential-card__price" role="presentation"><span class="property-price ">Under Contract</span></div> 
-          // with a new card, containing the historical prices data and the price range
-          const priceDiv = item.querySelector('.residential-card__price');
-          const imageUrl = chrome.runtime.getURL('images/icon48.png');
+            async function processQueue() {
+                if (activeRequests >= maxConcurrentRequests || queue.length === 0) {
+                    return;
+                }
 
-          // Create a new card element with inline CSS
-          const card = document.createElement('div');
-          card.className = 'price-guide-card';
-          card.innerHTML = `
-          <div class="card-content" style="display: flex; align-items: center;">
-              <img src="${imageUrl}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
-              <div style="flex-grow: 1; text-align: center;">
-                  <h3 style="margin: 0 0 10px;">Price Guide</h3>
-                  <p style="margin: 0;">${price}</p>
-              </div>
-          </div>
-          `;
-          card.style.border = '1px solid #ccc';
-          card.style.padding = '16px';
-          card.style.marginTop = '10px';
-          card.style.backgroundColor = '#f9f9f9';
-          card.style.borderRadius = '8px';
+                const item = queue.shift();
+                activeRequests++;
 
-          // Insert the card after the price element
-          item.insertAdjacentElement('afterend', card);
+                let price = null;
+                let url = item.querySelector('.details-link.residential-card__details-link');
+
+                // Create and insert the loading card element
+                const loadingCard = document.createElement('div');
+                loadingCard.className = 'loading-card';
+                loadingCard.innerHTML = `
+                <br>
+                <div class="card-content" style="display: flex; align-items: center;">
+                    <img src="${chrome.runtime.getURL('images/icon48.png')}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+                    <div style="flex-grow: 1; text-align: center;">
+                        <h3 style="margin: 0 0 10px;">Loading Prices ...</h3>
+                    </div>
+                </div>
+                `;
+                item.insertAdjacentElement('afterend', loadingCard);
+
+                // Get the historical prices data
+                try {
+                    const response = await new Promise((resolve, reject) => {
+                        chrome.runtime.sendMessage({
+                            action: "pricesList",
+                            url: url.href
+                        }, (response) => {
+                            if (chrome.runtime.lastError) {
+                                reject(chrome.runtime.lastError);
+                            } else {
+                                resolve(response);
+                            }
+                        });
+                    });
+                    prices.push(response);
+                    price = response;
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+
+                // Remove the spinner
+                loadingCard.remove();
+
+                // Replace the div <div class="residential-card__price" role="presentation"><span class="property-price ">Under Contract</span></div> 
+                // with a new card, containing the historical prices data and the price range
+                const priceDiv = item.querySelector('.residential-card__price');
+                const imageUrl = chrome.runtime.getURL('images/icon48.png');
+
+                // Create a new card element with inline CSS
+                const card = document.createElement('div');
+                card.className = 'price-guide-card';
+                card.innerHTML = `
+                <div class="card-content" style="display: flex; align-items: center;">
+                    <img src="${imageUrl}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+                    <div style="flex-grow: 1; text-align: center;">
+                        <h3 style="margin: 0 0 10px;">Price Guide</h3>
+                        <p style="margin: 0;">${price}</p>
+                    </div>
+                </div>
+                `;
+                card.style.border = '1px solid #ccc';
+                card.style.padding = '16px';
+                card.style.marginTop = '10px';
+                card.style.backgroundColor = '#f9f9f9';
+                card.style.borderRadius = '8px';
+
+                // Insert the card after the price element
+                item.insertAdjacentElement('afterend', card);
+
+                activeRequests--;
+                processQueue();
+            }
         }
-
-        console.log(prices);
-      }
     }
   };
+
 
   /**
    * Extracts price and date information from the timeline wrapper.
