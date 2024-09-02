@@ -1,6 +1,6 @@
 window.addEventListener('load', () => {
 
-    /**
+  /**
    * Listener for Chrome runtime messages.
    * Extracts price and date information from the timeline when the action is "extractPriceAndDate".
    * @param {Object} request - The request object containing the action.
@@ -15,6 +15,98 @@ window.addEventListener('load', () => {
       sendResponse(extractedData);
     }
   });
+
+  /**
+   * Listener for Chrome runtime messages.
+   * Extracts the list of prices when the action is "extractPricesList".
+   * @param {Object} request - The request object containing the action.
+   * @param {Object} sender - The sender of the message.
+   * @param {Function} sendResponse - The function to send the response back.
+   */
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    (async () => {
+    if (request.action === "extractPricesList") {
+      const scripts = document.getElementsByTagName('script');
+      const prices = await extractPriceRange(scripts);
+      sendResponse(prices);
+    }
+    })();
+
+    return true;
+  });
+
+  // First, check if URL is https://www.realestate.com.au/buy/*
+  // Then loop through each item in <ul class="tiered-results tiered-results--exact"> and get link in details-link residential-card__details-link
+  async function extractPricesList() {
+    // Check if URL is https://www.realestate.com.au/buy/*
+    const currentUrl = window.location.href;
+    const regex = /^https:\/\/www\.realestate\.com\.au\/buy\/.*$/;
+  
+    if (regex.test(currentUrl)) {
+      // Loop through each item in <ul class="tiered-results tiered-results--exact"> and get link in details-link residential-card__details-link
+      const tieredResults = document.querySelector('.tiered-results.tiered-results--exact');
+      const prices = [];
+      if (tieredResults) {
+        const items = tieredResults.querySelectorAll('.residential-card__content');
+        for (const item of items) {
+
+          let price = null;
+          let url = item.querySelector('.details-link.residential-card__details-link');
+
+          // Get the historical prices data
+          try {
+            const response = await new Promise((resolve, reject) => {
+              chrome.runtime.sendMessage({
+                action: "pricesList",
+                url: url.href
+              }, (response) => {
+                if (chrome.runtime.lastError) {
+                  reject(chrome.runtime.lastError);
+                } else {
+                  resolve(response);
+                }
+              });
+            });
+            prices.push(response);
+            price = response;
+          } catch (error) {
+            console.error('Error:', error);
+          }
+
+          // Remove the spinner
+          spinner.remove();
+
+          // Replace the div <div class="residential-card__price" role="presentation"><span class="property-price ">Under Contract</span></div> 
+          // with a new card, containing the historical prices data and the price range
+          const priceDiv = item.querySelector('.residential-card__price');
+          const imageUrl = chrome.runtime.getURL('images/icon48.png');
+
+          // Create a new card element with inline CSS
+          const card = document.createElement('div');
+          card.className = 'price-guide-card';
+          card.innerHTML = `
+          <div class="card-content" style="display: flex; align-items: center;">
+              <img src="${imageUrl}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+              <div style="flex-grow: 1; text-align: center;">
+                  <h3 style="margin: 0 0 10px;">Price Guide</h3>
+                  <p style="margin: 0;">${price}</p>
+              </div>
+          </div>
+          `;
+          card.style.border = '1px solid #ccc';
+          card.style.padding = '16px';
+          card.style.marginTop = '10px';
+          card.style.backgroundColor = '#f9f9f9';
+          card.style.borderRadius = '8px';
+
+          // Insert the card after the price element
+          item.insertAdjacentElement('afterend', card);
+        }
+
+        console.log(prices);
+      }
+    }
+  };
 
   /**
    * Extracts price and date information from the timeline wrapper.
@@ -58,10 +150,10 @@ window.addEventListener('load', () => {
    * @returns {String} The price range and median price.
    * @returns {null} If the property is for rent, or if any of the required data is missing.
    */
-  async function extractPriceRange() {
+  async function extractPriceRange(scripts) {
     
     // Get all the script tags
-    const scripts = document.getElementsByTagName('script');
+    // const scripts = document.getElementsByTagName('script');
     
     // Initialize variables
     let buyOrRent = null;
@@ -124,8 +216,10 @@ window.addEventListener('load', () => {
         const response = await fetch(url);
         const data = await response.json();
         medianPrice = data.suburbMedianPrice;
-        medianPriceFormatted = medianPrice.toLocaleString();
-        console.log(medianPriceFormatted);
+        if (medianPrice){
+          medianPriceFormatted = medianPrice.toLocaleString();
+          console.log(medianPriceFormatted);
+        }
       } catch (error) {
         console.error('Error:', error);
       }
@@ -303,10 +397,12 @@ window.addEventListener('load', () => {
    * and updates the property page.
    */
   async function runScript() {
-    const priceRange = await extractPriceRange();
+    const scripts = document.getElementsByTagName('script');
+    const priceRange = await extractPriceRange(scripts);
     if (priceRange) {
       updatePriceRange(priceRange);
     }
+    await extractPricesList();
   }
 
   // Run the script

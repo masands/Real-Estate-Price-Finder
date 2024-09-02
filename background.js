@@ -25,6 +25,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           });
       });
       return true;  // Will respond asynchronously.
+  } 
+  else if (request.action === "pricesList") {
+    chrome.windows.create({ url: request.url, state: "minimized" }, (window) => {
+        const tab = window.tabs[0];
+        chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+            if (info.status === 'complete' && tabId === tab.id) {
+                chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    files: ['content.js']
+                }, () => {
+                    chrome.tabs.sendMessage(tab.id, { action: "extractPricesList" }, (response) => {
+                        sendResponse(response);
+                        chrome.windows.remove(window.id);
+                    });
+                });
+                chrome.tabs.onUpdated.removeListener(listener);
+            }
+        });
+    });
+    return true;  // Will respond asynchronously.
   }
 });
 
