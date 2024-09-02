@@ -376,12 +376,29 @@ window.addEventListener('load', () => {
       const originalPrice = priceSpan.textContent;
       priceSpan.textContent = originalPrice + '**';
 
-      // Get historical prices data
-      const historicalPrices = await getHistoricalPrice();
-      
       // Get the image URL using chrome.runtime.getURL
       const imageUrl = chrome.runtime.getURL('images/icon48.png');
-    
+
+      // Create and insert the loading card element
+      const loadingCard = document.createElement('div');
+      loadingCard.className = 'loading-card';
+      loadingCard.innerHTML = `
+      <br>
+      <div class="card-content" style="display: flex; align-items: center;">
+          <img src="${imageUrl}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+          <div style="flex-grow: 1; text-align: center;">
+              <h3 style="margin: 0 0 10px;">Loading Prices ...</h3>
+          </div>
+      </div>
+      `;
+      priceSpan.insertAdjacentElement('afterend', loadingCard);
+
+      // Get historical prices data
+      const historicalPrices = await getHistoricalPrice();
+
+      // Remove the spinner
+      loadingCard.remove();
+          
       // Create a new card element with inline CSS
       const card = document.createElement('div');
       card.className = 'price-guide-card';
