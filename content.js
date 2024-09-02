@@ -35,8 +35,10 @@ window.addEventListener('load', () => {
     return true;
   });
 
-  // First, check if URL is https://www.realestate.com.au/buy/*
-  // Then loop through each item in <ul class="tiered-results tiered-results--exact"> and get link in details-link residential-card__details-link
+  /**
+   * Extracts the list of prices from the property URL for each item in the tiered results on the buy page.
+   * @returns Nothing.
+   */
   async function extractPricesList() {
     // Check if URL is https://www.realestate.com.au/buy/*
     const currentUrl = window.location.href;
@@ -52,6 +54,20 @@ window.addEventListener('load', () => {
 
           let price = null;
           let url = item.querySelector('.details-link.residential-card__details-link');
+
+          // Create and insert the loading card element
+          const loadingCard = document.createElement('div');
+          loadingCard.className = 'loading-card';
+          loadingCard.innerHTML = `
+          <br>
+          <div class="card-content" style="display: flex; align-items: center;">
+              <img src="${chrome.runtime.getURL('images/icon48.png')}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+              <div style="flex-grow: 1; text-align: center;">
+                  <h3 style="margin: 0 0 10px;">Loading Prices ...</h3>
+              </div>
+          </div>
+          `;
+          item.insertAdjacentElement('afterend', loadingCard);
 
           // Get the historical prices data
           try {
@@ -74,7 +90,7 @@ window.addEventListener('load', () => {
           }
 
           // Remove the spinner
-          spinner.remove();
+          loadingCard.remove();
 
           // Replace the div <div class="residential-card__price" role="presentation"><span class="property-price ">Under Contract</span></div> 
           // with a new card, containing the historical prices data and the price range
