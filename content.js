@@ -44,14 +44,16 @@ window.addEventListener('load', () => {
     const regex = /^https:\/\/www\.realestate\.com\.au\/buy\/.*$/;
 
     if (regex.test(currentUrl)) {
-        const tieredResults = document.querySelector('.tiered-results.tiered-results--exact');
+        const tieredResults = document.querySelectorAll('.tiered-results.tiered-results--exact, .tiered-results.tiered-results--surrounding');
         const prices = [];
 
         if (tieredResults) {
-            const items = tieredResults.querySelectorAll('.residential-card__content');
+            const items = tieredResults[0].querySelectorAll('.residential-card__content');
             const queue = [];
             let activeRequests = 0;
-            const maxConcurrentRequests = 2;
+            const maxConcurrentRequests = 1;
+
+            // Remove all classes called price-guide-card
 
             const observer = new IntersectionObserver(async (entries, observer) => {
                 for (const entry of entries) {
@@ -70,13 +72,17 @@ window.addEventListener('load', () => {
                 if (activeRequests >= maxConcurrentRequests || queue.length === 0) {
                     return;
                 }
-
+                
                 const item = queue.shift();
                 activeRequests++;
 
+                // Remove all classes called price-guide-card from item container
+                const priceGuideCards = item.querySelectorAll('.price-guide-card');
+                priceGuideCards.forEach(card => card.remove());
+
                 let price = null;
                 let url = item.querySelector('.details-link.residential-card__details-link');
-
+                
                 // Create and insert the loading card element
                 const loadingCard = document.createElement('div');
                 loadingCard.className = 'loading-card';
@@ -138,7 +144,7 @@ window.addEventListener('load', () => {
                 card.style.borderRadius = '8px';
 
                 // Insert the card after the price element
-                item.insertAdjacentElement('afterend', card);
+                item.appendChild(card);
 
                 activeRequests--;
                 processQueue();
@@ -369,6 +375,11 @@ window.addEventListener('load', () => {
     const priceSpan = document.querySelector('.property-price.property-info__price');
     
     if (priceSpan) {
+
+      // Remove all classes called price-guide-card
+      const priceGuideCards = document.querySelectorAll('.price-guide-card');
+      priceGuideCards.forEach(card => card.remove());
+
       // Check if the textContent already contains 'Price Range'
       if (priceSpan.textContent.includes('**')) {
         return;
@@ -462,6 +473,40 @@ window.addEventListener('load', () => {
     await extractPricesList();
   }
 
+  // Function to observe the DOM for the layout__content element
+  function waitForElement(selector, callback) {
+    const observer = new MutationObserver((mutations, me) => {
+      if (document.querySelector(selector)) {
+        callback();
+        me.disconnect(); // Stop observing
+      }
+    });
+
+    observer.observe(document, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Function to reload the page with a 1-second delay
+  function reloadPage() {
+    setTimeout(() => {
+      location.reload();
+    }, 1000);
+  }
+
+  // Listen for URL changes
+  if (window.navigation) {
+    window.navigation.addEventListener("navigate", (event) => {
+      waitForElement('.layout__content', reloadPage);
+    });
+  } else {
+    window.addEventListener('popstate', () => {
+      waitForElement('.layout__content', reloadPage);
+    });
+  }
+
   // Run the script
   runScript();
+  // waitForElement('.layout__content', runScript);
 });
