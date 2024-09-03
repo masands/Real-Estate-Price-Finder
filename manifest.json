@@ -5,7 +5,7 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "tabs"
+    "windows"
   ],
   "host_permissions": [
     "https://www.realestate.com.au/*"
