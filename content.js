@@ -279,12 +279,17 @@ window.addEventListener('load', () => {
 
       // If price contains 'm', then multiply by 1000000, else if price contains 'k', then multiply by 1000
       firstPriceValue = firstPrice.includes('m') ? parseFloat(firstPrice.replace('m', '')) * 1000000 : parseFloat(firstPrice.replace('k', '')) * 1000;
-      lastPriceValue = lastPrice.includes('m') ? parseFloat(lastPrice.replace('m', '')) * 1000000 : parseFloat(lastPrice.replace('k', '')) * 1000;
 
       // Add thousand separator to the price
       firstPriceFormatted = firstPriceValue.toLocaleString();
-      lastPriceFormatted = lastPriceValue.toLocaleString();
       
+      if (lastPrice) {
+        lastPriceValue = lastPrice.includes('m') ? parseFloat(lastPrice.replace('m', '')) * 1000000 : parseFloat(lastPrice.replace('k', '')) * 1000;
+        lastPriceFormatted = lastPriceValue.toLocaleString();
+      } else {
+        lastPriceFormatted = "N/A";
+      }
+
       if (medianPrice) {
         return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}<hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">Median Price: $${medianPriceFormatted}`;
       } else {
