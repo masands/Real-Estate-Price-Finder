@@ -83,42 +83,53 @@ window.addEventListener('load', () => {
                 let price = null;
                 let url = item.querySelector('.details-link.residential-card__details-link');
                 
-                // Create and insert the loading card element
-                const loadingCard = document.createElement('div');
-                loadingCard.className = 'loading-card';
-                loadingCard.innerHTML = `
-                <br>
-                <div class="card-content" style="display: flex; align-items: center;">
-                    <img src="${chrome.runtime.getURL('images/icon48.png')}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
-                    <div style="flex-grow: 1; text-align: center;">
-                        <h3 style="margin: 0 0 10px;">Loading Prices ...</h3>
-                    </div>
-                </div>
-                `;
-                item.insertAdjacentElement('afterend', loadingCard);
+                const cachedData = JSON.parse(localStorage.getItem(url.href + "_prices"));
+                const now = new Date().getTime();
+                const oneDay = 24 * 60 * 60 * 1000;
+            
+                if (cachedData && (now - cachedData.timestamp < oneDay)) {
+                  price = cachedData.price;
+                } else {
+                
 
-                // Get the historical prices data
-                try {
-                    const response = await new Promise((resolve, reject) => {
-                        chrome.runtime.sendMessage({
-                            action: "pricesList",
-                            url: url.href
-                        }, (response) => {
-                            if (chrome.runtime.lastError) {
-                                reject(chrome.runtime.lastError);
-                            } else {
-                                resolve(response);
-                            }
-                        });
-                    });
-                    prices.push(response);
-                    price = response;
-                } catch (error) {
-                    console.error('Error:', error);
+                  // Create and insert the loading card element
+                  const loadingCard = document.createElement('div');
+                  loadingCard.className = 'loading-card';
+                  loadingCard.innerHTML = `
+                  <br>
+                  <div class="card-content" style="display: flex; align-items: center;">
+                      <img src="${chrome.runtime.getURL('images/icon48.png')}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+                      <div style="flex-grow: 1; text-align: center;">
+                          <h3 style="margin: 0 0 10px;">Loading Prices ...</h3>
+                      </div>
+                  </div>
+                  `;
+                  item.insertAdjacentElement('afterend', loadingCard);
+
+                  // Get the historical prices data
+                  try {
+                      const response = await new Promise((resolve, reject) => {
+                          chrome.runtime.sendMessage({
+                              action: "pricesList",
+                              url: url.href
+                          }, (response) => {
+                              if (chrome.runtime.lastError) {
+                                  reject(chrome.runtime.lastError);
+                              } else {
+                                  resolve(response);
+                              }
+                          });
+                      });
+                      prices.push(response);
+                      price = response;
+                      localStorage.setItem(url.href + "_prices", JSON.stringify({ price, timestamp: now }));
+                  } catch (error) {
+                      console.error('Error:', error);
+                  }
+
+                  // Remove the spinner
+                  loadingCard.remove();
                 }
-
-                // Remove the spinner
-                loadingCard.remove();
 
                 // Replace the div <div class="residential-card__price" role="presentation"><span class="property-price ">Under Contract</span></div> 
                 // with a new card, containing the historical prices data and the price range
@@ -307,67 +318,81 @@ window.addEventListener('load', () => {
 
     // Get all the script tags
     const scripts = document.getElementsByTagName('script');
+    const url = window.location.href;
 
-    // Initialize variables
-    let streetAddress = null;
-    let addressLocality = null;
-    let addressRegion = null;
-    let postalCode = null;
-    let propertyUrl = null;
+    // Check cache for historical prices
+    const cachedData = JSON.parse(localStorage.getItem(url+"_historicalPrices"));
+    const now = new Date().getTime();
+    const oneDay = 24 * 60 * 60 * 1000;
 
-    for (let script of scripts) {
-      let content = script.innerHTML;
-      // Remove all instances of '\'
-      content = content.replace(/\\/g, '');
-      const buyOrRentMatch = content.match(/"@type":"ListItem","position":1,"name":"(.*?)"/);
-      const streetAddress_match = content.match(/"streetAddress":"(.*?)"/);
-      const addressLocality_match = content.match(/"addressLocality":"(.*?)"/);
-      const addressRegion_match = content.match(/"addressRegion":"(.*?)"/);
-      const postalCode_match = content.match(/"postalCode":"(.*?)"/);
+    if (cachedData && (now - cachedData.timestamp < oneDay)) {
+      return cachedData.historicalPrices;
+    } 
+    else {
 
-      // Assign the matches to the variables
-      if (buyOrRentMatch) {buyOrRent = buyOrRentMatch;}
-      if (streetAddress_match) {streetAddress = streetAddress_match;}
-      if (addressLocality_match) {addressLocality = addressLocality_match;}
-      if (addressRegion_match) {addressRegion = addressRegion_match;}
-      if (postalCode_match) {postalCode = postalCode_match;}
-    }
+      // Initialize variables
+      let streetAddress = null;
+      let addressLocality = null;
+      let addressRegion = null;
+      let postalCode = null;
+      let propertyUrl = null;
 
-    // If for Rent, return null
-    if (buyOrRent && buyOrRent[1] === 'Rent') {
-      return null;
-    }
+      for (let script of scripts) {
+        let content = script.innerHTML;
+        // Remove all instances of '\'
+        content = content.replace(/\\/g, '');
+        const buyOrRentMatch = content.match(/"@type":"ListItem","position":1,"name":"(.*?)"/);
+        const streetAddress_match = content.match(/"streetAddress":"(.*?)"/);
+        const addressLocality_match = content.match(/"addressLocality":"(.*?)"/);
+        const addressRegion_match = content.match(/"addressRegion":"(.*?)"/);
+        const postalCode_match = content.match(/"postalCode":"(.*?)"/);
 
-    if (addressLocality && addressRegion && postalCode && streetAddress) {
-
-      // Search for the property using the street address, suburb, postcode and state
-      const search = `${streetAddress[1]} ${addressLocality[1]} ${addressRegion[1]} ${postalCode[1]}`;
-      const searchUrl = `https://suggest.realestate.com.au/consumer-suggest/suggestions?max=1&type=address&src=property-value-page&query=${search}`;  
-      try {
-        const response = await fetch(searchUrl);
-        const data = await response.json();
-        propertyUrl = data._embedded.suggestions[0].source.url;
-      } catch (error) {
-        console.error('Error:', error);
+        // Assign the matches to the variables
+        if (buyOrRentMatch) {buyOrRent = buyOrRentMatch;}
+        if (streetAddress_match) {streetAddress = streetAddress_match;}
+        if (addressLocality_match) {addressLocality = addressLocality_match;}
+        if (addressRegion_match) {addressRegion = addressRegion_match;}
+        if (postalCode_match) {postalCode = postalCode_match;}
       }
 
-      // Get the historical prices data
-      try {
-        const response = await new Promise((resolve, reject) => {
-          chrome.runtime.sendMessage({
-            action: "extractData",
-            url: propertyUrl
-          }, (response) => {
-            if (chrome.runtime.lastError) {
-              reject(chrome.runtime.lastError);
-            } else {
-              resolve(response);
-            }
+      // If for Rent, return null
+      if (buyOrRent && buyOrRent[1] === 'Rent') {
+        return null;
+      }
+
+      if (addressLocality && addressRegion && postalCode && streetAddress) {
+
+        // Search for the property using the street address, suburb, postcode and state
+        const search = `${streetAddress[1]} ${addressLocality[1]} ${addressRegion[1]} ${postalCode[1]}`;
+        const searchUrl = `https://suggest.realestate.com.au/consumer-suggest/suggestions?max=1&type=address&src=property-value-page&query=${search}`;  
+        try {
+          const response = await fetch(searchUrl);
+          const data = await response.json();
+          propertyUrl = data._embedded.suggestions[0].source.url;
+        } catch (error) {
+          console.error('Error:', error);
+        }
+
+        // Get the historical prices data
+        try {
+          const response = await new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage({
+              action: "extractData",
+              url: propertyUrl
+            }, (response) => {
+              if (chrome.runtime.lastError) {
+                reject(chrome.runtime.lastError);
+              } else {
+                resolve(response);
+              }
+            });
           });
-        });
-        return response;
-      } catch (error) {
-        console.error('Error:', error);
+          // Cache the historical prices data
+          localStorage.setItem(url+"_historicalPrices", JSON.stringify({ historicalPrices: response, timestamp: now }));
+          return response;
+        } catch (error) {
+          console.error('Error:', error);
+        }
       }
     }
   }
@@ -471,10 +496,25 @@ window.addEventListener('load', () => {
    */
   async function runScript() {
     const scripts = document.getElementsByTagName('script');
-    const priceRange = await extractPriceRange(scripts);
+
+    // Check cache for price range
+    const url = window.location.href;
+    const cachedData = JSON.parse(localStorage.getItem(url+"_prices"));
+    const now = new Date().getTime();
+    const oneDay = 24 * 60 * 60 * 1000;
+    let priceRange = null;
+
+    if (cachedData && (now - cachedData.timestamp < oneDay)) {
+      priceRange = cachedData.price;
+    } 
+    else {
+      priceRange = await extractPriceRange(scripts);
+    }
+
     if (priceRange) {
       updatePriceRange(priceRange);
     }
+    
     await extractPricesList();
   }
 
