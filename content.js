@@ -48,7 +48,9 @@ window.addEventListener('load', () => {
         const prices = [];
 
         if (tieredResults) {
-            const items = tieredResults[0].querySelectorAll('.residential-card__content');
+          // Loop through each item in the tiered results
+          for (const tieredResult of tieredResults) {
+            const items = tieredResult.querySelectorAll('.residential-card__content');
             const queue = [];
             let activeRequests = 0;
             const maxConcurrentRequests = 1;
@@ -160,6 +162,7 @@ window.addEventListener('load', () => {
                 activeRequests--;
                 processQueue();
             }
+          }
         }
     }
   };
