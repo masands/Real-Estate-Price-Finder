@@ -3,7 +3,6 @@
   "name": "Real Estate Price Finder",
   "version": "0.5.1",
   "permissions": [
-    "activeTab",
     "scripting",
     "windows"
   ],
