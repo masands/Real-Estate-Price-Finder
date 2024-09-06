@@ -79,7 +79,7 @@ window.addEventListener('load', () => {
             const items = tieredResult.querySelectorAll('.residential-card__content');
             const queue = [];
             let activeRequests = 0;
-            const maxConcurrentRequests = 1;
+            const maxConcurrentRequests = 4;
 
             // Remove all classes called price-guide-card
 
