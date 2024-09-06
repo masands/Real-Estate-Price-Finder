@@ -10,6 +10,8 @@
       text-align: center;
       padding: 20px;
       background-color: #f0f0f0; /* Light gray background */
+      margin: 0;
+      width: 300px; /* Set a fixed width for the popup */
     }
     .container {
       margin-top: 20px;
@@ -22,15 +24,59 @@
       height: 40px !important;
       width: 145px !important;
     }
+    .content {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .content img {
+      max-width: 100px;
+      margin-bottom: 20px;
+    }
+    .content h1 {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    .content textarea {
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 12px; /* Set font size to 10px */
+      resize: vertical; /* Allow vertical resizing */
+      height: 60px; /* Set initial height */
+    }
+    .content button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .content button:hover {
+      background-color: #45a049;
+    }
   </style>
 </head>
 <body>
-  <img src="images/icon48.png" alt="Logo" style="max-width: 100px; margin-bottom: 20px;">
-  <p>Developed with ❤️ by Sahil Masand</p>
+  <div class="content">
+    <img src="images/icon48.png" alt="Logo">
+    <h1>Property Preferences</h1>
+    <textarea id="preferences" placeholder="Enter your preferences for the AI (i.e. close to school, shops etc.)"></textarea>
+    <button id="submitPreferences">Submit</button>
+    <p>Developed with ❤️ by Sahil Masand</p>
+  </div>
   <div class="container coffee-button">
     <a href="https://www.buymeacoffee.com/masandsahiw" target="_blank">
       <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee">
     </a>
   </div>
+  <script src="popup.js"></script>
 </body>
 </html>

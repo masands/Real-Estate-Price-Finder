@@ -1,10 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Real Estate Price Finder",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "permissions": [
     "scripting",
-    "windows"
+    "windows",
+    "storage"
   ],
   "host_permissions": [
     "https://www.realestate.com.au/*"
