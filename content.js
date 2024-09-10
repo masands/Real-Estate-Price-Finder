@@ -12,7 +12,9 @@ window.addEventListener('load', () => {
       const data = [];
       const timeLineWrappers = document.querySelectorAll("[class*='TimeLineWrapper']");
       const extractedData = extractPriceAndDate(timeLineWrappers[0], data);
-      sendResponse(extractedData);
+      const propertyOverviewText = document.querySelector('#property-overview').textContent;
+      
+      sendResponse({ extractedData, propertyOverviewText });
     }
   });
 
@@ -79,7 +81,7 @@ window.addEventListener('load', () => {
             const items = tieredResult.querySelectorAll('.residential-card__content');
             const queue = [];
             let activeRequests = 0;
-            const maxConcurrentRequests = 4;
+            const maxConcurrentRequests = 1;
 
             // Remove all classes called price-guide-card
 
@@ -366,12 +368,15 @@ window.addEventListener('load', () => {
     const url = window.location.href;
 
     // Check cache for historical prices
-    const cachedData = JSON.parse(localStorage.getItem(url+"_historicalPrices"));
+    const cachedDataPrices = JSON.parse(localStorage.getItem(url+"_historicalPrices"));
+    const cachedDataUrl = localStorage.getItem(url+"_propertyUrl");
+    const cachedDataDesc = localStorage.getItem(url+"_propertyDesc");
     const now = new Date().getTime();
     const oneDay = 24 * 60 * 60 * 1000;
 
-    if (cachedData && (now - cachedData.timestamp < oneDay)) {
-      return cachedData.historicalPrices;
+    if (cachedDataPrices && cachedDataPrices && cachedDataDesc && (now - cachedDataPrices.timestamp < oneDay)) {
+      // return historical prices data from cache and the property URL
+      return { historicalPrices: cachedDataPrices.historicalPrices, propertyUrl: cachedDataUrl, propertyDesc: cachedDataDesc };
     } 
     else {
 
@@ -381,6 +386,8 @@ window.addEventListener('load', () => {
       let addressRegion = null;
       let postalCode = null;
       let propertyUrl = null;
+      let historicalPrices = null;
+      let propertyDesc = null;
 
       for (let script of scripts) {
         let content = script.innerHTML;
@@ -429,12 +436,16 @@ window.addEventListener('load', () => {
                 reject(chrome.runtime.lastError);
               } else {
                 resolve(response);
+                historicalPrices = response.extractedData;
+                propertyDesc = response.propertyOverviewText;
               }
             });
           });
           // Cache the historical prices data
-          localStorage.setItem(url+"_historicalPrices", JSON.stringify({ historicalPrices: response, timestamp: now }));
-          return response;
+          localStorage.setItem(url+"_historicalPrices", JSON.stringify({ historicalPrices: historicalPrices, timestamp: now }));
+          localStorage.setItem(url+"_propertyDesc", propertyDesc);
+          localStorage.setItem(url+"_propertyUrl", propertyUrl);
+          return { response, propertyUrl, propertyDesc };
         } catch (error) {
           console.error('Error:', error);
         }
@@ -480,7 +491,7 @@ window.addEventListener('load', () => {
       priceSpan.insertAdjacentElement('afterend', loadingCard);
 
       // Get historical prices data
-      const historicalPrices = await getHistoricalPrice();
+      const { historicalPrices, propertyUrl, propertyDesc } = await getHistoricalPrice();
 
       // Remove the spinner
       loadingCard.remove();
@@ -522,6 +533,14 @@ window.addEventListener('load', () => {
                   `).join('')}
               </tbody>
           </table>
+      </div>
+      <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
+      <div style="margin-top: 5px; font-size: 12px; color: #666; text-align: center;">
+          <p>${propertyDesc}</p>
+      </div>
+      <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
+      <div style="margin-top: 5px; font-size: 12px; color: #666; text-align: center;">
+          <a href="${propertyUrl}" target="_blank" style="color: #007bff; text-decoration: none;">Click to Visit Property Page</a>
       </div>
   `;
       card.style.border = '1px solid #ccc';
