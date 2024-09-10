@@ -12,7 +12,7 @@ window.addEventListener('load', () => {
       const data = [];
       const timeLineWrappers = document.querySelectorAll("[class*='TimeLineWrapper']");
       const extractedData = extractPriceAndDate(timeLineWrappers[0], data);
-      const propertyOverviewText = document.querySelector('#property-overview').textContent;
+      const propertyOverviewText = document.querySelector("#property-overview p[class^='Text__Typography']").textContent;
       
       sendResponse({ extractedData, propertyOverviewText });
     }
@@ -81,7 +81,7 @@ window.addEventListener('load', () => {
             const items = tieredResult.querySelectorAll('.residential-card__content');
             const queue = [];
             let activeRequests = 0;
-            const maxConcurrentRequests = 1;
+            const maxConcurrentRequests = 4;
 
             // Remove all classes called price-guide-card
 
@@ -445,7 +445,7 @@ window.addEventListener('load', () => {
           localStorage.setItem(url+"_historicalPrices", JSON.stringify({ historicalPrices: historicalPrices, timestamp: now }));
           localStorage.setItem(url+"_propertyDesc", propertyDesc);
           localStorage.setItem(url+"_propertyUrl", propertyUrl);
-          return { response, propertyUrl, propertyDesc };
+          return { historicalPrices, propertyUrl, propertyDesc };
         } catch (error) {
           console.error('Error:', error);
         }
@@ -505,6 +505,11 @@ window.addEventListener('load', () => {
           <div style="display: flex; align-items: center; justify-content: center;">
               <div style="flex-grow: 1; text-align: center;">
                   <h3 style="margin: 0 0 10px;">Price Guide</h3>
+                  <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
+                  <div style="margin-top: 5px; font-size: 12px; color: #666; text-align: center;">
+                    <p>${propertyDesc}</p>
+                  </div>
+                  <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
                   <p style="margin: 0;">${priceRange}</p>
               </div>
           </div>
@@ -533,10 +538,6 @@ window.addEventListener('load', () => {
                   `).join('')}
               </tbody>
           </table>
-      </div>
-      <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
-      <div style="margin-top: 5px; font-size: 12px; color: #666; text-align: center;">
-          <p>${propertyDesc}</p>
       </div>
       <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
       <div style="margin-top: 5px; font-size: 12px; color: #666; text-align: center;">
