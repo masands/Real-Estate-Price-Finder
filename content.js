@@ -1,43 +1,5 @@
 window.addEventListener('load', () => {
 
-  /**
-   * Listener for Chrome runtime messages.
-   * Extracts price and date information from the timeline when the action is "extractPriceAndDate".
-   * @param {Object} request - The request object containing the action.
-   * @param {Object} sender - The sender of the message.
-   * @param {Function} sendResponse - The function to send the response back.
-   */
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "extractPriceAndDate") {
-      const data = [];
-      const timeLineWrappers = document.querySelectorAll("[class*='TimeLineWrapper']");
-      const extractedData = extractPriceAndDate(timeLineWrappers[0], data);
-      const propertyOverviewText = document.querySelector("#property-overview p[class^='Text__Typography']").textContent;
-      
-      sendResponse({ extractedData, propertyOverviewText });
-    }
-  });
-
-  /**
-   * Listener for Chrome runtime messages.
-   * Extracts the list of prices when the action is "extractPricesList".
-   * @param {Object} request - The request object containing the action.
-   * @param {Object} sender - The sender of the message.
-   * @param {Function} sendResponse - The function to send the response back.
-   */
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    (async () => {
-    if (request.action === "extractPricesList") {
-      const scripts = document.getElementsByTagName('script');
-      const property_desc = document.querySelector('.property-description__content').textContent;
-      const prices = await extractPriceRange(scripts);
-      sendResponse({ prices, property_desc });
-    }
-    })();
-
-    return true;
-  });
-
   async function generateContent(text) {
     const url = 'https://real-estate-gemini-api-c92f2f48b600.herokuapp.com/generateContent';
     const data = { text };
@@ -139,26 +101,21 @@ window.addEventListener('load', () => {
                   `;
                   item.insertAdjacentElement('afterend', loadingCard);
 
-                  // Get the historical prices data
+                  // Get the property URL and extract the price range and median price
                   try {
-                      const response = await new Promise((resolve, reject) => {
-                          chrome.runtime.sendMessage({
-                              action: "pricesList",
-                              url: url.href
-                          }, (response) => {
-                              if (chrome.runtime.lastError) {
-                                  reject(chrome.runtime.lastError);
-                              } else {
-                                  resolve(response);
-                              }
-                          });
-                      });
-                      prices.push(response);
-                      price = response.prices;
-                      propert_desc = response.property_desc;
-                      localStorage.setItem(url.href + "_prices", JSON.stringify({ price, timestamp: now }));
-                  } catch (error) {
-                      console.error('Error:', error);
+                    const response = await fetch(url.href);
+                    const data = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(data, 'text/html');
+                    const scripts = doc.getElementsByTagName('script');
+                    const property_desc = doc.querySelector('.property-description__content').textContent;
+                    const prices = await extractPriceRange(scripts);
+                    price = prices;
+                    propert_desc = property_desc;
+                    localStorage.setItem(url.href + "_prices", JSON.stringify({ price, timestamp: now }));
+                  }
+                  catch (error) {
+                    console.error('Error:', error);
                   }
 
                   // Generate content for the property description
@@ -427,28 +384,26 @@ window.addEventListener('load', () => {
 
         // Get the historical prices data
         try {
-          const response = await new Promise((resolve, reject) => {
-            chrome.runtime.sendMessage({
-              action: "extractData",
-              url: propertyUrl
-            }, (response) => {
-              if (chrome.runtime.lastError) {
-                reject(chrome.runtime.lastError);
-              } else {
-                resolve(response);
-                historicalPrices = response.extractedData;
-                propertyDesc = response.propertyOverviewText;
-              }
-            });
-          });
+          const response = await fetch(propertyUrl);
+          const data = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(data, 'text/html');
+          const timeLineWrappers = doc.querySelectorAll("[class*='TimeLineWrapper']");
+          const propertyOverviewText = doc.querySelector("#property-overview p[class^='Text__Typography']").textContent;
+          
+          historicalPrices = extractPriceAndDate(timeLineWrappers[0], []);         
+          propertyDesc = propertyOverviewText;
+
           // Cache the historical prices data
           localStorage.setItem(url+"_historicalPrices", JSON.stringify({ historicalPrices: historicalPrices, timestamp: now }));
           localStorage.setItem(url+"_propertyDesc", propertyDesc);
           localStorage.setItem(url+"_propertyUrl", propertyUrl);
           return { historicalPrices, propertyUrl, propertyDesc };
+          
         } catch (error) {
           console.error('Error:', error);
         }
+
       }
     }
   }
