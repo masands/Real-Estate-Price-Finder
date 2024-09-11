@@ -81,7 +81,7 @@ window.addEventListener('load', () => {
                 const now = new Date().getTime();
                 const oneDay = 24 * 60 * 60 * 1000;
             
-                if (cachedPriceData && cachedContentData && (now - cachedPriceData.timestamp < oneDay)) {
+                if (cachedPriceData && cachedContentData) {
                   price = cachedPriceData.price;
                   ai_summary = cachedContentData.ai_summary;
                 } else {
@@ -331,7 +331,7 @@ window.addEventListener('load', () => {
     const now = new Date().getTime();
     const oneDay = 24 * 60 * 60 * 1000;
 
-    if (cachedDataPrices && cachedDataPrices && cachedDataDesc && (now - cachedDataPrices.timestamp < oneDay)) {
+    if (cachedDataPrices && cachedDataPrices && cachedDataDesc) {
       // return historical prices data from cache and the property URL
       return { historicalPrices: cachedDataPrices.historicalPrices, propertyUrl: cachedDataUrl, propertyDesc: cachedDataDesc };
     } 
