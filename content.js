@@ -415,6 +415,9 @@ window.addEventListener('load', () => {
    */
   async function updatePriceRange(priceRange) {
     const priceSpan = document.querySelector('.property-price.property-info__price');
+    let historicalPrices = null;
+    let propertyUrl = null;
+    let propertyDesc = null;
     
     if (priceSpan) {
 
@@ -447,7 +450,12 @@ window.addEventListener('load', () => {
       priceSpan.insertAdjacentElement('afterend', loadingCard);
 
       // Get historical prices data
-      const { historicalPrices, propertyUrl, propertyDesc } = await getHistoricalPrice();
+      try {
+        ({ historicalPrices, propertyUrl, propertyDesc } = await getHistoricalPrice());
+      }
+      catch (error) {
+        console.error('Error:', error);
+      }
 
       // Remove the spinner
       loadingCard.remove();
@@ -463,7 +471,7 @@ window.addEventListener('load', () => {
                   <h3 style="margin: 0 0 10px;">Price Guide</h3>
                   <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
                   <div style="margin-top: 5px; font-size: 12px; color: #666; text-align: center;">
-                    <p>${propertyDesc}</p>
+                    <p>${propertyDesc || "Property Description not available"}</p>
                   </div>
                   <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
                   <p style="margin: 0;">${priceRange}</p>
@@ -485,26 +493,33 @@ window.addEventListener('load', () => {
                       <th style="border: 1px solid #ddd; padding: 8px;">Price</th>
                   </tr>
               </thead>
-              <tbody>
-                  ${historicalPrices.map(price => `
-                      <tr>
-                          <td style="border: 1px solid #ddd; padding: 8px;">${price.date}</td>
-                          <td style="border: 1px solid #ddd; padding: 8px;">${price.price}</td>
-                      </tr>
-                  `).join('')}
+              <tbody id="historical-prices">
               </tbody>
           </table>
       </div>
       <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
       <div style="margin-top: 5px; font-size: 10px; color: #666; text-align: center;">
-          <a href="${propertyUrl}" target="_blank" style="color: #007bff; text-decoration: none;">Click to Visit Property Page for more Details, such as Internet Availability, Nearby Schools, and more.</a>
+          <a href="${propertyUrl || ""}" target="_blank" style="color: #007bff; text-decoration: none;">Click to Visit Property Page for more Details, such as Internet Availability, Nearby Schools, and more.</a>
       </div>
-  `;
+      `;
       card.style.border = '1px solid #ccc';
       card.style.padding = '16px';
       card.style.marginTop = '10px';
       card.style.backgroundColor = '#f9f9f9';
       card.style.borderRadius = '8px';
+
+      // Map above to tbody id="historical-prices"
+      if(historicalPrices){
+        const tbody = card.querySelector('#historical-prices');
+        historicalPrices.forEach(price => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+          <td style="border: 1px solid #ddd; padding: 8px;">${price.date}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${price.price}</td>
+          `;
+          tbody.appendChild(tr);
+      });
+      }
 
       // Insert the card after the price element
       priceSpan.insertAdjacentElement('afterend', card);
