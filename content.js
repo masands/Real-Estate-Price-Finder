@@ -524,7 +524,7 @@ window.addEventListener('load', () => {
     const oneDay = 24 * 60 * 60 * 1000;
     let priceRange = null;
 
-    if (cachedData && (now - cachedData.timestamp < oneDay)) {
+    if (cachedData) {
       priceRange = cachedData.price;
     } 
     else {
