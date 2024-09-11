@@ -390,6 +390,7 @@ window.addEventListener('load', () => {
           const doc = parser.parseFromString(data, 'text/html');
           const timeLineWrappers = doc.querySelectorAll("[class*='TimeLineWrapper']");
           const propertyOverviewText = doc.querySelector("#property-overview p[class^='Text__Typography']").textContent;
+          propertyUrl = doc.querySelector("[id='rea-pp:backlink:pca-pp'] a").href;
           
           historicalPrices = extractPriceAndDate(timeLineWrappers[0], []);         
           propertyDesc = propertyOverviewText;
@@ -495,8 +496,8 @@ window.addEventListener('load', () => {
           </table>
       </div>
       <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
-      <div style="margin-top: 5px; font-size: 12px; color: #666; text-align: center;">
-          <a href="${propertyUrl}" target="_blank" style="color: #007bff; text-decoration: none;">Click to Visit Property Page</a>
+      <div style="margin-top: 5px; font-size: 10px; color: #666; text-align: center;">
+          <a href="${propertyUrl}" target="_blank" style="color: #007bff; text-decoration: none;">Click to Visit Property Page for more Details, such as Internet Availability, Nearby Schools, and more.</a>
       </div>
   `;
       card.style.border = '1px solid #ccc';
