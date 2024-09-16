@@ -24,7 +24,30 @@ window.addEventListener('load', () => {
       console.error('Error:', error);
     }
   }
+ 
+  async function getPropertyPriceEstimate(address) {
+    const url = `https://real-estate-gemini-api-c92f2f48b600.herokuapp.com/getPropertyPriceEstimate?address=${encodeURIComponent(address)}`;
   
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const result = await response.json();
+      console.log(result);
+      return result;
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
   /**
    * Extracts the list of prices from the property URL for each item in the tiered results on the buy page.
    * @returns Nothing.
@@ -75,7 +98,7 @@ window.addEventListener('load', () => {
                 let price = null;
                 let propert_desc = null;
                 let url = item.querySelector('.details-link.residential-card__details-link');
-                
+
                 const cachedPriceData = JSON.parse(localStorage.getItem(url.href + "_prices"));
                 const cachedContentData = JSON.parse(localStorage.getItem(url.href + "_content"));
                 const now = new Date().getTime();
@@ -234,6 +257,7 @@ window.addEventListener('load', () => {
     let lastPriceFormatted = null;
     let medianPrice = null;
     let medianPriceFormatted = null;
+    let bestEstimatePrice = null;
 
     for (let script of scripts) {
       let content = script.innerHTML;
@@ -286,6 +310,9 @@ window.addEventListener('load', () => {
       }
     }
 
+    // Get best estimate price
+    bestEstimatePrice = await getPropertyPriceEstimate(streetAddress[1] + ' ' + postalCode[1]);
+
     if (marketingPriceRange) {
       // Get FirstPrice and LastPrice
       priceRange = marketingPriceRange[1].split('_');
@@ -305,11 +332,7 @@ window.addEventListener('load', () => {
         lastPriceFormatted = "N/A";
       }
 
-      if (medianPrice) {
-        return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}<hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">Median Price: $${medianPriceFormatted}`;
-      } else {
-        return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}`;
-      }
+      return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}<hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">Best Estimate Price: $${bestEstimatePrice || "N/A"}<hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">Median Price: $${medianPriceFormatted || "N/A"}`;
     }
   }
 
@@ -333,7 +356,7 @@ window.addEventListener('load', () => {
 
     if (cachedDataPrices && cachedDataPrices && cachedDataDesc) {
       // return historical prices data from cache and the property URL
-      return { historicalPrices: cachedDataPrices.historicalPrices, propertyUrl: cachedDataUrl, propertyDesc: cachedDataDesc };
+      return { historicalPrices: cachedDataPrices.historicalPrices, propertyUrl: cachedDataUrl, propertyDesc: cachedDataDesc};
     } 
     else {
 
@@ -374,6 +397,7 @@ window.addEventListener('load', () => {
         // Search for the property using the street address, suburb, postcode and state
         const search = `${streetAddress[1]} ${addressLocality[1]} ${addressRegion[1]} ${postalCode[1]}`;
         const searchUrl = `https://suggest.realestate.com.au/consumer-suggest/suggestions?max=1&type=address&src=property-value-page&query=${search}`;  
+                
         try {
           const response = await fetch(searchUrl);
           const data = await response.json();
@@ -399,7 +423,7 @@ window.addEventListener('load', () => {
           localStorage.setItem(url+"_historicalPrices", JSON.stringify({ historicalPrices: historicalPrices, timestamp: now }));
           localStorage.setItem(url+"_propertyDesc", propertyDesc);
           localStorage.setItem(url+"_propertyUrl", propertyUrl);
-          return { historicalPrices, propertyUrl, propertyDesc };
+          return { historicalPrices, propertyUrl, propertyDesc};
           
         } catch (error) {
           console.error('Error:', error);
@@ -451,7 +475,7 @@ window.addEventListener('load', () => {
 
       // Get historical prices data
       try {
-        ({ historicalPrices, propertyUrl, propertyDesc } = await getHistoricalPrice());
+        ({ historicalPrices, propertyUrl, propertyDesc} = await getHistoricalPrice());
       }
       catch (error) {
         console.error('Error:', error);
@@ -482,7 +506,8 @@ window.addEventListener('load', () => {
       <div style="margin-top: 5px; font-size: 10px; color: #666;">
           <p><b>Agent Price:</b> this is the price that the agent has listed this property for.</p>
           <p><b>Median Price:</b> this is the middle of the total number of similar properties sold within this suburb over the past 12 months.</p>
-      </div>
+          <p><b>Best Estimate Price:</b> this is the best estimate of the price of the property from Domain Insight.</p>
+        </div>
       <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
       <div style="margin-top: 10px; text-align: center;">
           <h4>Property history</h4>
