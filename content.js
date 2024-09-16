@@ -336,7 +336,20 @@ window.addEventListener('load', () => {
         lastPriceFormatted = "N/A";
       }
 
-      return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}<hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">Best Estimate Price: $${bestEstimatePrice || "N/A"}<hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">Median Price: $${medianPriceFormatted || "N/A"}`;
+      return `Agent Price: $${firstPriceFormatted} - $${lastPriceFormatted}
+              <div style="margin-top: 1px; font-size: 10px; color: #666;">
+                <p>Price as Indicated by the Agent.</p>
+              </div><hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
+              Best Estimate Price: $${bestEstimatePrice || "N/A"}
+              <div style="margin-top: 1px; font-size: 10px; color: #666;">
+                <p>Best Estimate from Domain Insight.</p>
+              </div>
+              <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
+              Median Price: $${medianPriceFormatted || "N/A"}
+              <div style="margin-top: 1px; font-size: 10px; color: #666;">
+                <p>Middle of the total number of similar properties sold within this suburb over the past 12 months.</p>
+              </div>
+              `;
     }
   }
 
@@ -506,12 +519,6 @@ window.addEventListener('load', () => {
               </div>
           </div>
       </div>
-      <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
-      <div style="margin-top: 5px; font-size: 10px; color: #666;">
-          <p><b>Agent Price:</b> this is the price that the agent has listed this property for.</p>
-          <p><b>Best Estimate Price:</b> this is the best estimate of the price of the property from Domain Insight.</p>
-          <p><b>Median Price:</b> this is the middle of the total number of similar properties sold within this suburb over the past 12 months.</p>    
-        </div>
       <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
       <div style="margin-top: 10px; text-align: center;">
           <h4>Property history</h4>
