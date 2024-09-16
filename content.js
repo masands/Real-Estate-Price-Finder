@@ -311,7 +311,11 @@ window.addEventListener('load', () => {
     }
 
     // Get best estimate price
-    bestEstimatePrice = await getPropertyPriceEstimate(streetAddress[1] + ' ' + postalCode[1]);
+    try {
+      bestEstimatePrice = await getPropertyPriceEstimate(streetAddress[1] + ' ' + postalCode[1]);
+    } catch (error) {
+      console.error('Error:', error);
+    }
 
     if (marketingPriceRange) {
       // Get FirstPrice and LastPrice
@@ -505,8 +509,8 @@ window.addEventListener('load', () => {
       <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
       <div style="margin-top: 5px; font-size: 10px; color: #666;">
           <p><b>Agent Price:</b> this is the price that the agent has listed this property for.</p>
-          <p><b>Median Price:</b> this is the middle of the total number of similar properties sold within this suburb over the past 12 months.</p>
           <p><b>Best Estimate Price:</b> this is the best estimate of the price of the property from Domain Insight.</p>
+          <p><b>Median Price:</b> this is the middle of the total number of similar properties sold within this suburb over the past 12 months.</p>    
         </div>
       <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
       <div style="margin-top: 10px; text-align: center;">
