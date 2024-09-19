@@ -116,7 +116,7 @@ window.addEventListener('load', () => {
                   loadingCard.innerHTML = `
                   <br>
                   <div class="card-content" style="display: flex; align-items: center;">
-                      <img src="${chrome.runtime.getURL('images/icon48.png')}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+                      <img src="${chrome.runtime.getURL('images/icon48.png')}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px; border-radius: 8px;">
                       <div style="flex-grow: 1; text-align: center;">
                           <h3 style="margin: 0 0 10px;">Generating Property Data ...</h3>
                       </div>
@@ -158,8 +158,8 @@ window.addEventListener('load', () => {
                 const card = document.createElement('div');
                 card.className = 'price-guide-card';
                 card.innerHTML = `
-                <div class="card-content" style="display: flex; align-items: center;">
-                    <img src="${imageUrl}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+                <div class="card-content" style="text-align: center;">
+                    <img src="${imageUrl}" alt="Logo" style="width: 50px; height: 50px; margin-bottom: 10px; border-radius: 8px;">
                     <div style="flex-grow: 1; text-align: center;">
                         <h3 style="margin: 0 0 10px;">Price Guide</h3>
                         <p style="margin: 0;">${price}</p>
@@ -482,7 +482,7 @@ window.addEventListener('load', () => {
       loadingCard.innerHTML = `
       <br>
       <div class="card-content" style="display: flex; align-items: center;">
-          <img src="${imageUrl}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+          <img src="${imageUrl}" alt="Logo" style="width: 50px; height: 50px; margin-bottom: 10px; border-radius: 8px;">
           <div style="flex-grow: 1; text-align: center;">
               <h3 style="margin: 0 0 10px;">Loading Prices ...</h3>
           </div>
@@ -506,7 +506,7 @@ window.addEventListener('load', () => {
       card.className = 'price-guide-card';
       card.innerHTML = `
       <div class="card-content" style="text-align: center;">
-          <img src="${imageUrl}" alt="Logo" style="width: 50px; height: 50px; margin-bottom: 10px;">
+          <img src="${imageUrl}" alt="Logo" style="width: 50px; height: 50px; margin-bottom: 10px; border-radius: 8px;">
           <div style="display: flex; align-items: center; justify-content: center;">
               <div style="flex-grow: 1; text-align: center;">
                   <h3 style="margin: 0 0 10px;">Price Guide</h3>
