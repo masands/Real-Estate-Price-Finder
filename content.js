@@ -152,6 +152,7 @@ window.addEventListener('load', () => {
                                                 Always prioritize the agent price over the best estimate price and median price.
                                                 Avoid repeating the agent price, best estimate price and median price in the offer price recommendation as it is already provided to the user.
                                                 Do not waffle, only provide the price recommendations in 1 to 2 sentences and summary of the property in 4 to 5 sentences.
+                                                Remember, be critical and provide a balanced view of the property description. You work for the user, not the agent.
                                                 PRICE DATA: ` + price
                   ai_summary = await generateContent(propert_desc);
                   localStorage.setItem(url.href + "_content", JSON.stringify({ ai_summary, timestamp: now }));
