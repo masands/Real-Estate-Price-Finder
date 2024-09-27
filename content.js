@@ -61,6 +61,8 @@ window.addEventListener('load', () => {
         const prices = [];
 
         if (tieredResults) {
+          let itemCount = 0; // Counter for items processed
+          
           // Loop through each item in the tiered results
           for (const tieredResult of tieredResults) {
             const items = tieredResult.querySelectorAll('.residential-card__content');
@@ -146,7 +148,7 @@ window.addEventListener('load', () => {
                                                 such as comparing the agent price, best estimate price and suburb median and whether the property price is good value or not. 
                                                 If any of the data is missing, skip the section.
                                                 Finally, provide a recommended offer price based on the provided data.
-                                                Do not waffle, only provide the recommendations in 1 to 2 sentences.
+                                                Do not waffle, only provide the price recommendations in 1 to 2 sentences and summary of the property in 4 to 5 sentences.
                                                 PRICE DATA: ` + price
                   ai_summary = await generateContent(propert_desc);
                   localStorage.setItem(url.href + "_content", JSON.stringify({ ai_summary, timestamp: now }));
@@ -188,6 +190,34 @@ window.addEventListener('load', () => {
 
                 // Insert the card after the price element
                 item.appendChild(card);
+                
+                // Increment the item count
+                itemCount++;
+
+                // Insert a rating and donation card after every 5th item
+                if (itemCount % 10 === 0) {
+                  const ratingCard = document.createElement('div');
+                  ratingCard.className = 'rating-card';
+                  ratingCard.innerHTML = `
+                  <div class="card-content" style="text-align: center;">
+                    <div style="flex-grow: 1; text-align: center;">
+                      <h3 style="margin: 0 0 5px;">Are you finding this extension useful?</h3>
+                      <div style="margin-top: 5px; font-size: 10px; color: #666;">
+                        <p style="margin: 0;">Please consider giving a ★★★★★ rating on the Chrome Web Store.</p>
+                        <p style="margin: 0;">If you would like to support my work, please consider buying me a coffee ☕: https://www.buymeacoffee.com/masandsahiw. Your generosity helps cover the costs of hosting the AI model. Thank you!</p>
+                      </div>
+                    </div>
+                  </div>
+                  `;
+                  ratingCard.style.border = '1px solid #ccc';
+                  ratingCard.style.padding = '16px';
+                  ratingCard.style.marginTop = '10px';
+                  ratingCard.style.backgroundColor = '#f9f9f9';
+                  ratingCard.style.borderRadius = '8px';
+                
+                  // insert underneath the item
+                  item.insertAdjacentElement('afterend', ratingCard);
+                }
                 
                 activeRequests--;
                 processQueue();
