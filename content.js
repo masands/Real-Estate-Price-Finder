@@ -142,6 +142,12 @@ window.addEventListener('load', () => {
                   }
 
                   // Generate content for the property description
+                  propert_desc = propert_desc + `Also provide commentary on the price range, 
+                                                such as comparing the agent price, best estimate price and suburb median and whether the property price is good value or not. 
+                                                If any of the data is missing, skip the section.
+                                                Finally, provide a recommended offer price based on the provided data.
+                                                Do not waffle, only provide the recommendations in 1 to 2 sentences.
+                                                PRICE DATA: ` + price
                   ai_summary = await generateContent(propert_desc);
                   localStorage.setItem(url.href + "_content", JSON.stringify({ ai_summary, timestamp: now }));
 
