@@ -148,6 +148,8 @@ window.addEventListener('load', () => {
                                                 such as comparing the agent price, best estimate price and suburb median and whether the property price is good value or not. 
                                                 If any of the data is missing, skip the section.
                                                 Finally, provide a recommended offer price based on the provided data.
+                                                If there is a big discrepancy between the agent price, the best estimate price and median price, avoid making a recommendation.
+                                                Always prioritize the agent price over the best estimate price and median price.
                                                 Do not waffle, only provide the price recommendations in 1 to 2 sentences and summary of the property in 4 to 5 sentences.
                                                 PRICE DATA: ` + price
                   ai_summary = await generateContent(propert_desc);
