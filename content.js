@@ -1,8 +1,8 @@
 window.addEventListener('load', () => {
 
-  async function generateContent(text) {
-    const url = 'https://real-estate-gemini-api-c92f2f48b600.herokuapp.com/generateContent';
-    const data = { text };
+  async function generateContent(text, imageUrls) {
+    const url = 'https://real-estate-gemini-api-c92f2f48b600.herokuapp.com/generateContentwImages';
+    const data = { text, imageUrls };
   
     try {
       const response = await fetch(url, {
@@ -65,7 +65,8 @@ window.addEventListener('load', () => {
           
           // Loop through each item in the tiered results
           for (const tieredResult of tieredResults) {
-            const items = tieredResult.querySelectorAll('.residential-card__content');
+            
+            const items = tieredResult.querySelectorAll('[data-testid="ResidentialCard"]');;
             const queue = [];
             let activeRequests = 0;
             const maxConcurrentRequests = 4;
@@ -90,13 +91,29 @@ window.addEventListener('load', () => {
                     return;
                 }
                 
+                let imageUrls = [];
                 const item = queue.shift();
                 activeRequests++;
 
                 // Remove all classes called price-guide-card from item container
                 const priceGuideCards = item.querySelectorAll('.price-guide-card');
+                const priceDiv = item.querySelector('.residential-card__content');
                 priceGuideCards.forEach(card => card.remove());
 
+                // get all images URLs from the carousel
+                let data_index = 0;
+                let property_image = item.querySelector(`[data-index="${data_index}"]`);
+                let button = item.querySelector(`[data-carousel-next="true"]`);
+                while (property_image) {
+                  let image_url = property_image.getAttribute('data-url');
+                  imageUrls.push(image_url);
+                  data_index++;
+                  if (data_index > 10) {
+                    break;
+                  }
+                  await button.click();
+                }
+                
                 let price = null;
                 let propert_desc = null;
                 let url = item.querySelector('.details-link.residential-card__details-link');
@@ -124,7 +141,7 @@ window.addEventListener('load', () => {
                       </div>
                   </div>
                   `;
-                  item.insertAdjacentElement('afterend', loadingCard);
+                  priceDiv.insertAdjacentElement('afterend', loadingCard);
 
                   // Get the property URL and extract the price range and median price
                   try {
@@ -154,7 +171,7 @@ window.addEventListener('load', () => {
                                                 Do not waffle, only provide the price recommendations in 1 to 2 sentences and summary of the property in 4 to 5 sentences.
                                                 Remember, be critical and provide a balanced view of the property description. You work for the user, not the agent.
                                                 PRICE DATA: ` + price
-                  ai_summary = await generateContent(propert_desc);
+                  ai_summary = await generateContent(propert_desc, imageUrls);
                   localStorage.setItem(url.href + "_content", JSON.stringify({ ai_summary, timestamp: now }));
 
                   // Remove the spinner
@@ -163,7 +180,6 @@ window.addEventListener('load', () => {
 
                 // Replace the div <div class="residential-card__price" role="presentation"><span class="property-price ">Under Contract</span></div> 
                 // with a new card, containing the historical prices data and the price range
-                const priceDiv = item.querySelector('.residential-card__price');
                 const imageUrl = chrome.runtime.getURL('images/icon48.png');
 
                 // Create a new card element with inline CSS
@@ -193,7 +209,7 @@ window.addEventListener('load', () => {
                 card.style.borderRadius = '8px';
 
                 // Insert the card after the price element
-                item.appendChild(card);
+                priceDiv.appendChild(card);
                 
                 // Increment the item count
                 itemCount++;
@@ -220,7 +236,7 @@ window.addEventListener('load', () => {
                   ratingCard.style.borderRadius = '8px';
                 
                   // insert underneath the item
-                  item.insertAdjacentElement('afterend', ratingCard);
+                  priceDiv.insertAdjacentElement('afterend', ratingCard);
                 }
                 
                 activeRequests--;
