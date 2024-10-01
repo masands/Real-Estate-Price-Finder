@@ -182,12 +182,20 @@ window.addEventListener('load', () => {
                                                 If there is a big discrepancy between the agent price, the best estimate price and median price, avoid making a recommendation.
                                                 Always prioritize the agent price over the best estimate price and median price.
                                                 Avoid repeating the agent price, best estimate price and median price in the offer price recommendation as it is already provided to the user.
-                                                Do not waffle, only provide the price recommendations in 1 to 2 sentences and summary of the property in 4 to 5 sentences.
                                                 Remember, be critical and provide a balanced view of the property description. You work for the user, not the agent.
                                                 Highlight any costs associated with the property, such strata fees (if mentioned in the property description).
+                                                Split each section into the following sections with h4 headers: Overview, The Good, Potential Issues, Recommendations. The first section should be the property summary, 
+                                                the second second should be the positives of the property (in dot point format), the third section should be the potential issues of the property (in dot point format),
+                                                and the last section should be the offer price recommendation.
+                                                The good and potential issues sections should be based on the property description, rather than the price data.
+                                                Do not waffle, only provide the price recommendations in 1 to 2 sentences and summary of the property in 4 to 5 sentences. Keep the dot points to a maximum of three to five per section.
                                                 PRICE DATA: ` + price + 
-                                                `You can also use the suburb profile to gauge the property value. SUBURB PROFILE: ` + suburbProfile;
+                                                `You can also use the suburb profile to gauge the property value. SUBURB PROFILE: ` + suburbProfile + 
+                                                `Return everything in HTML format. This will go inside existing div elements so you don't need the body or head tags.`;
                   ai_summary = await generateContent(propert_desc, imageUrls);
+                  // convert text content to HTML
+                  // const parser = new DOMParser();
+                  // ai_summary = parser.parseFromString(ai_summary, 'text/html');
                   localStorage.setItem(url.href + "_content", JSON.stringify({ ai_summary, timestamp: now }));
 
                   // Remove the spinner
@@ -209,7 +217,7 @@ window.addEventListener('load', () => {
                         <p style="margin: 0;">${price}</p>
                         <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
                         <div style="margin-top: 5px; font-size: 12px; color: #666;">
-                          <p style="margin: 0;">${ai_summary || "AI Summary not available"}</p>
+                          ${ai_summary || "AI Summary not available"}
                         </div>
                         <hr style="margin: 10px 0; border: 0; border-top: 1px solid rgba(0, 0, 0, 0.1);">
                         <div style="margin-top: 5px; font-size: 10px; color: #666;">
