@@ -57,10 +57,24 @@ window.addEventListener('load', () => {
     const regex = /^https:\/\/www\.realestate\.com\.au\/buy\/.*$/;
 
     if (regex.test(currentUrl)) {
+        let suburbProfile = null;
         const tieredResults = document.querySelectorAll('.tiered-results.tiered-results--exact, .tiered-results.tiered-results--surrounding');
         const prices = [];
 
         if (tieredResults) {
+
+          // GET request to the suburb URL
+          try{
+            const suburbUrl = document.querySelector('a[aria-label="Explore the neighbourhood"]').href;
+            const response = await fetch(suburbUrl);
+            const data = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data, 'text/html');
+            suburbProfile = doc.querySelector('p[data-testid="marketSummary"]').textContent;
+          } catch (error) {
+            console.error('Error:', error);
+          }
+
           let itemCount = 0; // Counter for items processed
           
           // Loop through each item in the tiered results
@@ -170,7 +184,9 @@ window.addEventListener('load', () => {
                                                 Avoid repeating the agent price, best estimate price and median price in the offer price recommendation as it is already provided to the user.
                                                 Do not waffle, only provide the price recommendations in 1 to 2 sentences and summary of the property in 4 to 5 sentences.
                                                 Remember, be critical and provide a balanced view of the property description. You work for the user, not the agent.
-                                                PRICE DATA: ` + price
+                                                Highlight any costs associated with the property, such strata fees (if mentioned in the property description).
+                                                PRICE DATA: ` + price + 
+                                                `You can also use the suburb profile to gauge the property value. SUBURB PROFILE: ` + suburbProfile;
                   ai_summary = await generateContent(propert_desc, imageUrls);
                   localStorage.setItem(url.href + "_content", JSON.stringify({ ai_summary, timestamp: now }));
 

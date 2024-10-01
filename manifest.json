@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Property Mate",
-  "version": "0.6.9",
+  "version": "0.6.9.1",
   "description": "Property Search, Simplified. Uncover hidden property prices with a single click.",
   "host_permissions": [
     "https://www.realestate.com.au/*"
