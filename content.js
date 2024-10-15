@@ -64,16 +64,16 @@ window.addEventListener('load', () => {
         if (tieredResults) {
 
           // GET request to the suburb URL
-          try{
-            const suburbUrl = document.querySelector('a[aria-label="Explore the neighbourhood"]').href;
-            const response = await fetch(suburbUrl);
-            const data = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data, 'text/html');
-            suburbProfile = doc.querySelector('p[data-testid="marketSummary"]').textContent;
-          } catch (error) {
-            console.error('Error:', error);
-          }
+          // try{
+          //   const suburbUrl = document.querySelector('a[aria-label="Explore the neighbourhood"]').href;
+          //   const response = await fetch(suburbUrl);
+          //   const data = await response.text();
+          //   const parser = new DOMParser();
+          //   const doc = parser.parseFromString(data, 'text/html');
+          //   suburbProfile = doc.querySelector('p[data-testid="marketSummary"]').textContent;
+          // } catch (error) {
+          //   console.error('Error:', error);
+          // }
 
           let itemCount = 0; // Counter for items processed
           
@@ -105,7 +105,6 @@ window.addEventListener('load', () => {
                     return;
                 }
                 
-                let imageUrls = [];
                 const item = queue.shift();
                 activeRequests++;
 
@@ -144,10 +143,12 @@ window.addEventListener('load', () => {
 
                   // get all images URLs from the carousel
                   let data_index = 0;
+                  let imageUrls = [];
                   let property_image = item.querySelector(`[data-index="${data_index}"]`);
                   // imageUrls.push(property_image.getAttribute('data-url'));
                   let button = item.querySelector(`[data-carousel-next="true"]`);
                   while (property_image) {
+                    property_image = item.querySelector(`[data-index="${data_index}"]`);
                     let image_url = property_image.getAttribute('data-url');
                     imageUrls.push(image_url);
                     data_index++;
@@ -156,7 +157,7 @@ window.addEventListener('load', () => {
                     }
                     await button.click();
                     // wait for 0.5 seconds
-                    await new Promise(r => setTimeout(r, 500));
+                    // await new Promise(r => setTimeout(r, 500));
                   }
 
                   // Return back to the first image
@@ -188,7 +189,6 @@ window.addEventListener('load', () => {
                                                 such as comparing the agent price, best estimate price and suburb median and whether the property price is good value or not. 
                                                 If any of the data is missing, skip the section.
                                                 Finally, provide a recommended offer price based on the provided data.
-                                                If there is a big discrepancy between the agent price, the best estimate price and median price, avoid making a recommendation.
                                                 Always prioritize the agent price over the best estimate price and median price.
                                                 Avoid repeating the agent price, best estimate price and median price in the offer price recommendation as it is already provided to the user.
                                                 Remember, be critical and provide a balanced view of the property description. You work for the user, not the agent.
@@ -197,10 +197,11 @@ window.addEventListener('load', () => {
                                                 the second second should be the positives of the property (in dot point format), the third section should be the potential issues of the property (in dot point format),
                                                 and the last section should be the offer price recommendation.
                                                 The good and potential issues sections should be based on the property description, rather than the price data.
+                                                Provide feedback on the supplied images in the Overview section.
                                                 Do not waffle, only provide the price recommendations in 1 to 2 sentences and summary of the property in 4 to 5 sentences. Keep the dot points to a maximum of three to five per section.
-                                                Also make sure to comment on the property images.
+                                                Your logic and reasoning should be rigorous and intelligent.
+                                                *DO NOT* state any facts or figures that are not in the supplied context.
                                                 PRICE DATA: ` + price + 
-                                                `You can also use the suburb profile to gauge the property value. SUBURB PROFILE: ` + suburbProfile + 
                                                 `Return everything in HTML format. This will go inside existing div elements so you don't need the body or head tags.`;
                   ai_summary = await generateContent(propert_desc, imageUrls);
                   // convert text content to HTML
