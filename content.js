@@ -113,21 +113,7 @@ window.addEventListener('load', () => {
                 const priceGuideCards = item.querySelectorAll('.price-guide-card');
                 const priceDiv = item.querySelector('.residential-card__content');
                 priceGuideCards.forEach(card => card.remove());
-
-                // get all images URLs from the carousel
-                let data_index = 0;
-                let property_image = item.querySelector(`[data-index="${data_index}"]`);
-                let button = item.querySelector(`[data-carousel-next="true"]`);
-                while (property_image) {
-                  let image_url = property_image.getAttribute('data-url');
-                  imageUrls.push(image_url);
-                  data_index++;
-                  if (data_index > 10) {
-                    break;
-                  }
-                  await button.click();
-                }
-                
+               
                 let price = null;
                 let propert_desc = null;
                 let url = item.querySelector('.details-link.residential-card__details-link');
@@ -142,7 +128,6 @@ window.addEventListener('load', () => {
                   ai_summary = cachedContentData.ai_summary;
                 } else {
                 
-
                   // Create and insert the loading card element
                   const loadingCard = document.createElement('div');
                   loadingCard.className = 'loading-card';
@@ -151,11 +136,35 @@ window.addEventListener('load', () => {
                   <div class="card-content" style="display: flex; align-items: center;">
                       <img src="${chrome.runtime.getURL('images/icon48.png')}" alt="Logo" style="width: 50px; height: 50px; margin-right: 10px; border-radius: 8px;">
                       <div style="flex-grow: 1; text-align: center;">
-                          <h3 style="margin: 0 0 10px;">Generating Property Data ...</h3>
+                          <h4 style="margin: 0 0 10px;">Please Wait, Scanning Property Images and Generating Property Data ...</h4>
                       </div>
                   </div>
                   `;
                   priceDiv.insertAdjacentElement('afterend', loadingCard);
+
+                  // get all images URLs from the carousel
+                  let data_index = 0;
+                  let property_image = item.querySelector(`[data-index="${data_index}"]`);
+                  // imageUrls.push(property_image.getAttribute('data-url'));
+                  let button = item.querySelector(`[data-carousel-next="true"]`);
+                  while (property_image) {
+                    let image_url = property_image.getAttribute('data-url');
+                    imageUrls.push(image_url);
+                    data_index++;
+                    if (data_index > 10) {
+                      break;
+                    }
+                    await button.click();
+                    // wait for 0.5 seconds
+                    await new Promise(r => setTimeout(r, 500));
+                  }
+
+                  // Return back to the first image
+                  button = item.querySelector(`[data-carousel-previous="true"]`);
+                  // click 10 times to go back to the first image
+                  for (let i = 0; i < 10; i++) {
+                    await button.click();
+                  }
 
                   // Get the property URL and extract the price range and median price
                   try {
@@ -189,6 +198,7 @@ window.addEventListener('load', () => {
                                                 and the last section should be the offer price recommendation.
                                                 The good and potential issues sections should be based on the property description, rather than the price data.
                                                 Do not waffle, only provide the price recommendations in 1 to 2 sentences and summary of the property in 4 to 5 sentences. Keep the dot points to a maximum of three to five per section.
+                                                Also make sure to comment on the property images.
                                                 PRICE DATA: ` + price + 
                                                 `You can also use the suburb profile to gauge the property value. SUBURB PROFILE: ` + suburbProfile + 
                                                 `Return everything in HTML format. This will go inside existing div elements so you don't need the body or head tags.`;
