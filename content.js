@@ -144,13 +144,21 @@ window.addEventListener('load', () => {
                   // get all images URLs from the carousel
                   let data_index = 0;
                   let imageUrls = [];
+                  let image_url = null;
                   let property_image = item.querySelector(`[data-index="${data_index}"]`);
                   // imageUrls.push(property_image.getAttribute('data-url'));
                   let button = item.querySelector(`[data-carousel-next="true"]`);
                   while (property_image) {
                     property_image = item.querySelector(`[data-index="${data_index}"]`);
-                    let image_url = property_image.getAttribute('data-url');
-                    imageUrls.push(image_url);
+                    try {
+                      image_url = property_image.getAttribute('data-url');
+                      if (image_url) {
+                        imageUrls.push(image_url);
+                      }
+                    }
+                    catch (error) {
+                      break;
+                    }
                     data_index++;
                     if (data_index > 20) {
                       break;
@@ -163,7 +171,7 @@ window.addEventListener('load', () => {
                   // Return back to the first image
                   button = item.querySelector(`[data-carousel-previous="true"]`);
                   // click 10 times to go back to the first image
-                  for (let i = 0; i < 20; i++) {
+                  for (let i = 1; i < imageUrls.length; i++) {
                     await button.click();
                   }
 
