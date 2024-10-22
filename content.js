@@ -152,7 +152,7 @@ window.addEventListener('load', () => {
                     let image_url = property_image.getAttribute('data-url');
                     imageUrls.push(image_url);
                     data_index++;
-                    if (data_index > 10) {
+                    if (data_index > 20) {
                       break;
                     }
                     await button.click();
@@ -163,7 +163,7 @@ window.addEventListener('load', () => {
                   // Return back to the first image
                   button = item.querySelector(`[data-carousel-previous="true"]`);
                   // click 10 times to go back to the first image
-                  for (let i = 0; i < 10; i++) {
+                  for (let i = 0; i < 20; i++) {
                     await button.click();
                   }
 
