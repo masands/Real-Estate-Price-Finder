@@ -258,7 +258,8 @@ window.addEventListener('load', () => {
                 itemCount++;
 
                 // Insert a rating and donation card after every 5th item
-                if (itemCount % 10 === 0) {
+                if (itemCount % 5 === 0) {
+                  const qrUrl = chrome.runtime.getURL('images/bmc_qr.png');
                   const ratingCard = document.createElement('div');
                   ratingCard.className = 'rating-card';
                   ratingCard.innerHTML = `
@@ -266,8 +267,11 @@ window.addEventListener('load', () => {
                     <div style="flex-grow: 1; text-align: center;">
                       <h3 style="margin: 0 0 5px;">Are you finding this extension useful?</h3>
                       <div style="margin-top: 5px; font-size: 10px; color: #666;">
-                        <p style="margin: 0;">Please consider giving a ★★★★★ rating on the Chrome Web Store.</p>
-                        <p style="margin: 0;">If you would like to support my work, please consider buying me a coffee ☕: https://www.buymeacoffee.com/masandsahiw. Your generosity helps cover the costs of hosting the AI model. Thank you!</p>
+                        <p style="margin: 0;">We are committed to keeping this extension completely free for all users, and helping to reduce deceptive marketing practices in the real estate industry.</p>
+                        <p style="margin: 0;">If you would like to help, please consider donating by scanning the following QR code. Your generosity helps cover the costs of hosting the AI model. Thank you!</p>
+                        <div style="margin-top: 10px;">
+                          <img src="${qrUrl}" alt="QR Code" style="width: 100px; height: 100px; border-radius: 8px;">
+                        </div>
                       </div>
                     </div>
                   </div>
